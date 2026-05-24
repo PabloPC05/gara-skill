@@ -81,9 +81,9 @@ def repository_root(location: Path) -> Path:
     if process.returncode != 0:
         raise PolicyError("El comando debe ejecutarse dentro de un repositorio Git.")
     root = Path(process.stdout.strip()).resolve()
-    remotes = git(root, "remote", "-v", check=False).stdout.lower()
-    remote_is_gara = bool(re.search(r"(?:/|:|\\)gara(?:\.git)?(?:\s|$)", remotes))
-    if root.name.lower() != "gara" and not remote_is_gara:
+    origin = git(root, "config", "--get", "remote.origin.url", check=False).stdout.strip().lower()
+    origin_is_gara = bool(re.search(r"(?:/|:|\\)gara(?:\.git)?/?$", origin))
+    if root.name.lower() != "gara" and not origin_is_gara:
         raise PolicyError("Este comando solo puede ejecutarse dentro del repositorio 'gara'.")
     return root
 
@@ -103,7 +103,12 @@ def staged_paths(root: Path) -> list[str]:
 def is_documentation(path: str) -> bool:
     lower = path.lower()
     name = Path(lower).name
-    return name in DOC_NAMES or name.startswith("readme.") or "/docs/" in f"/{lower}/"
+    return (
+        name in DOC_NAMES
+        or name.startswith("readme.")
+        or Path(lower).suffix == ".md"
+        or "/docs/" in f"/{lower}/"
+    )
 
 
 def classify_path(path: str) -> str:
@@ -219,6 +224,14 @@ def validate_type(requested: str | None, analysis: Analysis) -> str:
     return requested
 
 
+def validate_required_documentation(kind: str, analysis: Analysis) -> None:
+    if kind == "feat" and not analysis.documentation_paths:
+        raise PolicyError(
+            "\x1b[31m¡Atención! Estás añadiendo una funcionalidad pero no has incluido "
+            "cambios en la documentación.\x1b[0m"
+        )
+
+
 def validate_title(title: str) -> str:
     cleaned = title.strip()
     if any(cleaned.lower().startswith(f"{kind}:") for kind in TYPES):
@@ -276,6 +289,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         root = repository_root(Path(args.repo).resolve())
         analysis = analyze(root)
         kind = validate_type(args.type, analysis)
+        validate_required_documentation(kind, analysis)
         message = build_message(
             kind,
             validate_title(args.title),

@@ -9,8 +9,8 @@ flujo que:
 
 - valida que el staging pertenece a un checkout de `gara`;
 - bloquea mezclas detectables de cambios no atomicos;
-- exige documentacion staged ante cambios de API, configuracion publica,
-  variables de entorno o arquitectura;
+- exige documentacion staged para todo `feat` y ante cambios de API,
+  configuracion publica, variables de entorno o arquitectura;
 - aplica la taxonomia de commit requerida;
 - construye un mensaje narrativo con `PORQUÉ`, `CÓMO` y `DOCUMENTACIÓN`;
 - ejecuta `git commit` solo cuando se cumplen las validaciones.
@@ -85,6 +85,10 @@ un commit.
 Para cambios cuyo tipo se deduce de forma determinista, como documentacion o
 tests aislados, `--type` puede omitirse. Para cambios de codigo funcional se
 debe indicar `feat`, `fix`, `refactor` o `perf`.
+
+Todo `feat` debe incluir en staging al menos un archivo Markdown o un archivo
+de una carpeta `docs/`. La misma exigencia se aplica si el script detecta
+cambios de API, configuracion publica, variables de entorno o arquitectura.
 
 ## Desarrollo
 

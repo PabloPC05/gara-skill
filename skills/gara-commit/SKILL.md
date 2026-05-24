@@ -40,10 +40,11 @@ Usar `--dry-run` para validar y mostrar el mensaje sin crear el commit.
 
 ## Reglas Del Ejecutable
 
-- Abortar fuera de un checkout identificado como `gara` por su raiz o remoto.
+- Abortar fuera de un checkout identificado como `gara` por su raiz o por `remote.origin.url`.
 - Abortar sin archivos indexados.
 - Bloquear mezclas detectables de codigo funcional y estilos, o de categorias independientes.
-- Requerir documentacion staged si el diff muestra cambios de API, variables de entorno, configuracion publica o arquitectura.
+- Requerir documentacion staged para todo `feat`, o si el diff muestra cambios de API, variables de entorno, configuracion publica o arquitectura.
+- Aceptar como documentacion staged cualquier archivo Markdown o ruta bajo `docs/`.
 - Inferir tipos deterministas (`docs`, `test`, `style`, `build`, `ci`, `chore`). Para cambios de codigo, exigir `--type feat|fix|refactor|perf` porque la intencion no se puede derivar fiablemente del texto del diff.
 - Construir siempre las secciones `PORQUÉ`, `CÓMO` y `DOCUMENTACIÓN`; listar automaticamente la documentacion staged o `N/A`.
 

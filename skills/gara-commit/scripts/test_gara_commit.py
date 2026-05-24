@@ -70,6 +70,19 @@ class GaraCommitTests(unittest.TestCase):
         self.assertEqual(2, process.returncode)
         self.assertIn("indique --type", process.stderr)
 
+    def test_requires_docs_for_any_feature(self) -> None:
+        self.stage("backend/src/utils/state.js", "export const state = 'READY';\n")
+        process = self.invoke("--type", "feat", "--dry-run")
+        self.assertEqual(2, process.returncode)
+        self.assertIn("Estás añadiendo una funcionalidad", process.stderr)
+
+    def test_accepts_any_markdown_documentation_for_feature(self) -> None:
+        self.stage("backend/src/utils/state.js", "export const state = 'READY';\n")
+        self.stage("notes/release.md", "# Cambio\nNueva funcionalidad\n")
+        process = self.invoke("--type", "feat", "--dry-run")
+        self.assertEqual(0, process.returncode, process.stderr)
+        self.assertIn("- notes/release.md", process.stdout)
+
     def test_blocks_source_mixed_with_styles(self) -> None:
         self.stage("frontend/src/App.tsx", "export const App = () => null;\n")
         self.stage("frontend/src/index.css", "body { color: red; }\n")
@@ -122,6 +135,15 @@ class GaraCommitTests(unittest.TestCase):
         process = self.invoke("--dry-run")
         self.assertEqual(2, process.returncode)
         self.assertIn("repositorio 'gara'", process.stderr)
+
+    def test_accepts_renamed_checkout_with_gara_origin(self) -> None:
+        other = Path(self.temporary.name) / "checkout-local"
+        self.root.rename(other)
+        self.root = other
+        self.run_git("remote", "add", "origin", "https://github.com/PabloPC05/gara.git")
+        self.stage("README.md", "# Gara\n")
+        process = self.invoke("--dry-run")
+        self.assertEqual(0, process.returncode, process.stderr)
 
 
 if __name__ == "__main__":
