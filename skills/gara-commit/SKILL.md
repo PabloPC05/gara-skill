@@ -24,9 +24,10 @@ Usar `scripts/gara_commit.py` en lugar de invocar `git commit` directamente.
    - `chore`: mantenimiento sin codigo ni tests.
 4. Redactar una descripcion de hasta 50 caracteres, iniciada en mayuscula y sin punto final.
 5. Redactar el motivo y las decisiones tecnicas reales del diff.
-6. Ejecutar el script desde cualquier subdirectorio del checkout de Gara:
+6. Ejecutar el script instalado desde cualquier subdirectorio del checkout de Gara. Usar la ruta correspondiente al entorno:
 
 ```powershell
+# Codex
 python "$env:USERPROFILE\.codex\skills\gara-commit\scripts\gara_commit.py" `
   --repo . `
   --type fix `
@@ -34,6 +35,26 @@ python "$env:USERPROFILE\.codex\skills\gara-commit\scripts\gara_commit.py" `
   --why "La consulta podia devolver un estado tecnico sin normalizar y romper el polling del frontend." `
   --how "Normaliza los estados recibidos desde sacct en backend/src/utils/slurmState.js." `
   --how "Cubre el caso corregido con una prueba de regresion."
+```
+
+```powershell
+# Google Antigravity, instalacion global
+python "$env:USERPROFILE\.gemini\antigravity\skills\gara-commit\scripts\gara_commit.py" `
+  --repo . `
+  --type fix `
+  --title "Corrige consulta de estado Slurm" `
+  --why "La consulta podia devolver un estado tecnico sin normalizar y romper el polling del frontend." `
+  --how "Normaliza los estados recibidos desde sacct en backend/src/utils/slurmState.js."
+```
+
+```powershell
+# Google Antigravity, instalacion en el workspace
+python ".agents\skills\gara-commit\scripts\gara_commit.py" `
+  --repo . `
+  --type fix `
+  --title "Corrige consulta de estado Slurm" `
+  --why "La consulta podia devolver un estado tecnico sin normalizar y romper el polling del frontend." `
+  --how "Normaliza los estados recibidos desde sacct en backend/src/utils/slurmState.js."
 ```
 
 Usar `--dry-run` para validar y mostrar el mensaje sin crear el commit.

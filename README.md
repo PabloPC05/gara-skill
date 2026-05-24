@@ -1,6 +1,6 @@
 # gara-skill
 
-Skill para Codex y plugin para Claude Code que crean commits validados
+Skill para Codex y Google Antigravity, y plugin para Claude Code, que crean commits validados
 exclusivamente en el repositorio
 [`gara`](https://github.com/PabloPC05/gara).
 
@@ -51,6 +51,43 @@ Las nuevas publicaciones del plugin deben incrementar la version semantica de
 `plugins/gara-commit/.claude-plugin/plugin.json` para que Claude Code detecte
 la actualizacion.
 
+## Instalacion En Google Antigravity
+
+Antigravity utiliza skills con `SKILL.md`. El paquete
+`skills/gara-commit/` de este repositorio es compatible directamente con sus
+dos ubicaciones oficiales.
+
+Instalacion global para todos los workspaces del usuario:
+
+```powershell
+$temp = Join-Path ([IO.Path]::GetTempPath()) ("gara-skill-" + [guid]::NewGuid().ToString("N"))
+git clone --depth 1 https://github.com/PabloPC05/gara-skill.git $temp
+$dest = "$env:USERPROFILE\.gemini\antigravity\skills\gara-commit"
+New-Item -ItemType Directory -Force $dest | Out-Null
+Copy-Item -Recurse -Force "$temp\skills\gara-commit\*" $dest
+Remove-Item -LiteralPath $temp -Recurse -Force
+```
+
+Instalacion limitada a un checkout concreto de `gara`:
+
+```powershell
+cd C:\ruta\a\gara
+$temp = Join-Path ([IO.Path]::GetTempPath()) ("gara-skill-" + [guid]::NewGuid().ToString("N"))
+git clone --depth 1 https://github.com/PabloPC05/gara-skill.git $temp
+$dest = ".agents\skills\gara-commit"
+New-Item -ItemType Directory -Force $dest | Out-Null
+Copy-Item -Recurse -Force "$temp\skills\gara-commit\*" $dest
+Remove-Item -LiteralPath $temp -Recurse -Force
+```
+
+Antigravity selecciona la skill a partir de su descripcion. El usuario puede
+pedirle al agente que use `gara-commit` para crear el commit staged.
+
+La estructura sigue la documentacion oficial de
+[Google Antigravity Agent Skills](https://antigravity.google/docs/skills).
+Google indica que `.agents/skills/` es la ruta de workspace vigente y que
+`.agent/skills/` se conserva solo por compatibilidad.
+
 ## Instalacion En Codex
 
 Instalar desde GitHub con la skill del sistema `skill-installer`, o ejecutar su
@@ -77,6 +114,28 @@ python "$env:USERPROFILE\.codex\skills\gara-commit\scripts\gara_commit.py" `
   --why "La consulta podia devolver un estado tecnico sin normalizar y romper el polling del frontend." `
   --how "Normaliza los estados recibidos desde sacct." `
   --how "Cubre el caso corregido con una prueba de regresion."
+```
+
+En una instalacion global de Antigravity, sustituir la ruta del script por:
+
+```powershell
+python "$env:USERPROFILE\.gemini\antigravity\skills\gara-commit\scripts\gara_commit.py" `
+  --repo . `
+  --type fix `
+  --title "Corrige consulta de estado Slurm" `
+  --why "La consulta podia devolver un estado tecnico sin normalizar y romper el polling del frontend." `
+  --how "Normaliza los estados recibidos desde sacct."
+```
+
+En una instalacion Antigravity del workspace `gara`, usar:
+
+```powershell
+python ".agents\skills\gara-commit\scripts\gara_commit.py" `
+  --repo . `
+  --type fix `
+  --title "Corrige consulta de estado Slurm" `
+  --why "La consulta podia devolver un estado tecnico sin normalizar y romper el polling del frontend." `
+  --how "Normaliza los estados recibidos desde sacct."
 ```
 
 Usar `--dry-run` para validar el staging y previsualizar el mensaje sin crear
