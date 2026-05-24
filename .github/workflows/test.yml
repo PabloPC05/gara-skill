@@ -20,7 +20,17 @@ jobs:
           python-version: "3.12"
 
       - name: Compile scripts
-        run: python -m py_compile skills/gara-commit/scripts/gara_commit.py skills/gara-commit/scripts/test_gara_commit.py
+        run: |
+          python -m py_compile skills/gara-commit/scripts/gara_commit.py skills/gara-commit/scripts/test_gara_commit.py
+          python -m py_compile plugins/gara-commit/skills/commit/scripts/gara_commit.py plugins/gara-commit/skills/commit/scripts/test_gara_commit.py
 
-      - name: Run tests
+      - name: Ensure packaged scripts stay synchronized
+        run: |
+          cmp skills/gara-commit/scripts/gara_commit.py plugins/gara-commit/skills/commit/scripts/gara_commit.py
+          cmp skills/gara-commit/scripts/test_gara_commit.py plugins/gara-commit/skills/commit/scripts/test_gara_commit.py
+
+      - name: Run Codex package tests
         run: python skills/gara-commit/scripts/test_gara_commit.py -v
+
+      - name: Run Claude Code plugin tests
+        run: python plugins/gara-commit/skills/commit/scripts/test_gara_commit.py -v

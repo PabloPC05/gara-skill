@@ -1,0 +1,11 @@
+{
+  "name": "gara-commit",
+  "description": "Valida y crea commits atomicos y narrativos en el repositorio Gara",
+  "version": "1.0.0",
+  "author": {
+    "name": "Pablo Pardo",
+    "email": "pablo.pc2005@gmail.com"
+  },
+  "homepage": "https://github.com/PabloPC05/gara-skill",
+  "repository": "https://github.com/PabloPC05/gara-skill"
+}

@@ -1,0 +1,23 @@
+{
+  "name": "gara-tools",
+  "owner": {
+    "name": "Pablo Pardo",
+    "email": "pablo.pc2005@gmail.com"
+  },
+  "metadata": {
+    "description": "Herramientas de control de versiones para Gara"
+  },
+  "plugins": [
+    {
+      "name": "gara-commit",
+      "source": "./plugins/gara-commit",
+      "description": "Valida y crea commits atomicos en el repositorio Gara",
+      "author": {
+        "name": "Pablo Pardo"
+      },
+      "homepage": "https://github.com/PabloPC05/gara-skill",
+      "repository": "https://github.com/PabloPC05/gara-skill",
+      "keywords": ["git", "commit", "gara", "version-control"]
+    }
+  ]
+}
