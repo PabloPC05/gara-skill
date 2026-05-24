@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gara Commit"
+  short_description: "Valida y crea commits atomicos en Gara"
+  default_prompt: "Usa $gara-commit para validar el staging y crear un commit narrativo en Gara."
