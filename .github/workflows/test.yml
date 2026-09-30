@@ -1,4 +1,4 @@
-name: Test gara-commit skill
+name: Test Gara Skill bundle
 
 on:
   push:
@@ -10,6 +10,9 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,18 +22,32 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Compile scripts
+      - name: Install validation tools
+        run: python -m pip install -e ".[dev,validation]"
+
+      - name: Compile commit scripts
         run: |
           python -m py_compile skills/gara-commit/scripts/gara_commit.py skills/gara-commit/scripts/test_gara_commit.py
           python -m py_compile plugins/gara-commit/skills/commit/scripts/gara_commit.py plugins/gara-commit/skills/commit/scripts/test_gara_commit.py
 
-      - name: Ensure packaged scripts stay synchronized
+      - name: Ensure commit scripts stay synchronized
         run: |
           cmp skills/gara-commit/scripts/gara_commit.py plugins/gara-commit/skills/commit/scripts/gara_commit.py
           cmp skills/gara-commit/scripts/test_gara_commit.py plugins/gara-commit/skills/commit/scripts/test_gara_commit.py
 
-      - name: Run Codex package tests
+      - name: Run Codex commit package tests
         run: python skills/gara-commit/scripts/test_gara_commit.py -v
 
-      - name: Run Claude Code plugin tests
+      - name: Run Claude Code commit plugin tests
         run: python plugins/gara-commit/skills/commit/scripts/test_gara_commit.py -v
+
+      - name: Check Python lint and formatting
+        run: |
+          python -m ruff check .
+          python -m ruff format --check .
+
+      - name: Validate published catalog
+        run: python scripts/gara_workflow.py validate
+
+      - name: Run runtime suite and temporary package/install smoke
+        run: python -m unittest discover -s tests -v
