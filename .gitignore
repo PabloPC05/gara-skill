@@ -1,5 +1,12 @@
+.venv/
+venv/
+.build/
 __pycache__/
 *.py[cod]
 .pytest_cache/
-.venv/
-venv/
+*.egg-info/
+logs/
+output/
+.ruff_cache/
+/export/
+/export.zip
