@@ -1,0 +1,48 @@
+{
+  "publish_mutation": {
+    "resolved": true,
+    "workflow_status": "blocked",
+    "feature_after_publish": "broken",
+    "phases_marked_complete": [
+      "plan",
+      "tasks",
+      "build"
+    ],
+    "dirty_after_completion": true
+  },
+  "empty_review": {
+    "resolved": true,
+    "workflow_status": "blocked",
+    "revision_bytes": 0,
+    "review_marked_complete": false
+  },
+  "checkout_locks": {
+    "resolved": true,
+    "same_checkout_two_slug_locks_acquired": false
+  },
+  "issue_branch_prefix": {
+    "resolved": true,
+    "preflight_status": "blocked",
+    "spec_issue": "GAR-12",
+    "branch_issue": "GAR-123",
+    "model_called": false
+  },
+  "json_redaction": {
+    "resolved": true,
+    "plain_assignment_redacted": true,
+    "json_value_redacted": true,
+    "normalized_summary_log_redacted": true,
+    "uses_synthetic_values_only": true
+  },
+  "obsolete_installation": {
+    "resolved": true,
+    "removed_role_still_installed": false,
+    "removed_role_absent_from_distribution": true
+  },
+  "install_dry_run": {
+    "resolved": true,
+    "dry_run_status": "blocked",
+    "actual_install_detects_collision": true,
+    "foreign_file_preserved": true
+  }
+}

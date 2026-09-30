@@ -1,0 +1,145 @@
+{
+  "date": "2026-09-30",
+  "baseline": {
+    "unittest": {
+      "tests": 55,
+      "seconds": 208.58,
+      "status": "passed"
+    },
+    "ruff_check": "passed",
+    "ruff_format": "passed",
+    "catalog": {
+      "skills": 29,
+      "agents": 10,
+      "original_components": 46
+    }
+  },
+  "observations": {
+    "publish_mutation": {
+      "workflow_status": "completed",
+      "feature_after_publish": "broken",
+      "phases_marked_complete": [
+        "plan",
+        "tasks",
+        "build",
+        "verify",
+        "review",
+        "publish"
+      ],
+      "dirty_after_completion": true
+    },
+    "empty_review": {
+      "workflow_status": "completed",
+      "revision_bytes": 0,
+      "review_marked_complete": true
+    },
+    "checkout_locks": {
+      "same_checkout_two_slug_locks_acquired": true
+    },
+    "issue_branch_prefix": {
+      "preflight_status": "dry-run",
+      "spec_issue": "GAR-12",
+      "branch_issue": "GAR-123",
+      "model_called": false
+    },
+    "json_redaction": {
+      "plain_assignment_redacted": true,
+      "json_value_redacted": false,
+      "normalized_summary_log_redacted": false,
+      "uses_synthetic_values_only": true
+    },
+    "obsolete_installation": {
+      "removed_role_still_installed": true,
+      "removed_role_absent_from_distribution": true
+    },
+    "install_dry_run": {
+      "dry_run_status": "dry-run",
+      "actual_install_detects_collision": true,
+      "foreign_file_preserved": true
+    }
+  },
+  "connections": [
+    {
+      "agent": "gara-scout",
+      "explicit_references": [],
+      "claude_has_skill_tool": false,
+      "claude_has_mcp_tools": false
+    },
+    {
+      "agent": "gara-implementer",
+      "explicit_references": [
+        {
+          "file": "skills/gara-build/SKILL.md",
+          "line": 12
+        }
+      ],
+      "claude_has_skill_tool": false,
+      "claude_has_mcp_tools": false
+    },
+    {
+      "agent": "gara-verifier",
+      "explicit_references": [
+        {
+          "file": "skills/gara-verify/SKILL.md",
+          "line": 10
+        }
+      ],
+      "claude_has_skill_tool": false,
+      "claude_has_mcp_tools": false
+    },
+    {
+      "agent": "gara-revisor-visual",
+      "explicit_references": [],
+      "claude_has_skill_tool": false,
+      "claude_has_mcp_tools": false
+    },
+    {
+      "agent": "gara-researcher",
+      "explicit_references": [],
+      "claude_has_skill_tool": false,
+      "claude_has_mcp_tools": false
+    },
+    {
+      "agent": "gara-investigador",
+      "explicit_references": [],
+      "claude_has_skill_tool": false,
+      "claude_has_mcp_tools": false
+    },
+    {
+      "agent": "gara-rastreador",
+      "explicit_references": [],
+      "claude_has_skill_tool": false,
+      "claude_has_mcp_tools": false
+    },
+    {
+      "agent": "gara-contrastador",
+      "explicit_references": [],
+      "claude_has_skill_tool": false,
+      "claude_has_mcp_tools": false
+    },
+    {
+      "agent": "gara-evaluador",
+      "explicit_references": [
+        {
+          "file": "skills/gara-convocatoria/references/phases.md",
+          "line": 19
+        }
+      ],
+      "claude_has_skill_tool": false,
+      "claude_has_mcp_tools": false
+    },
+    {
+      "agent": "gara-disenador",
+      "explicit_references": [],
+      "claude_has_skill_tool": false,
+      "claude_has_mcp_tools": false
+    }
+  ],
+  "preservation": {
+    "installed_files": 316,
+    "installed_mismatches": [],
+    "zip_files": 80,
+    "export_mismatches": []
+  },
+  "scope": "Temporary repositories and a simulated native client. No real models, PRs, Linear mutations, HPC or deployments in the reproductions."
+}

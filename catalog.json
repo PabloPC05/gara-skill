@@ -1,0 +1,571 @@
+{
+  "version": "0.1.0",
+  "skills": [
+    {
+      "name": "gara-spec",
+      "title": "Especificación Gara",
+      "short": "Define requisitos observables antes de implementar",
+      "explicit_only": true,
+      "execution": "coordinated",
+      "agents": [
+        "gara-scout"
+      ]
+    },
+    {
+      "name": "gara-plan",
+      "title": "Plan técnico Gara",
+      "short": "Convierte requisitos en contratos técnicos verificables",
+      "explicit_only": true,
+      "execution": "coordinated",
+      "agents": [
+        "gara-scout",
+        "gara-researcher"
+      ]
+    },
+    {
+      "name": "gara-tasks",
+      "title": "Tareas Gara",
+      "short": "Programa tareas con dependencias y aceptación ejecutable",
+      "explicit_only": true,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-build",
+      "title": "Construcción Gara",
+      "short": "Implementa tandas ya especificadas y verifica su alcance",
+      "explicit_only": true,
+      "execution": "coordinated",
+      "agents": [
+        "gara-implementer"
+      ]
+    },
+    {
+      "name": "gara-verify",
+      "title": "Verificación Gara",
+      "short": "Contrasta requisitos, código y evidencia de aceptación",
+      "explicit_only": true,
+      "execution": "coordinated",
+      "agents": [
+        "gara-verifier",
+        "gara-revisor-visual"
+      ]
+    },
+    {
+      "name": "gara-review",
+      "title": "Revisión de corrección Gara",
+      "short": "Busca fallos reproducibles en un diff con contexto fresco",
+      "explicit_only": true,
+      "execution": "coordinated",
+      "agents": [
+        "gara-verifier"
+      ]
+    },
+    {
+      "name": "gara-workflow",
+      "title": "Flujo Gara",
+      "short": "Opera el ejecutor de Codex y Claude con estado durable",
+      "explicit_only": true,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-deliver",
+      "title": "Entrega Gara",
+      "short": "Publica una rama autorizada y prepara su revisión en Linear",
+      "explicit_only": true,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-diseno",
+      "title": "Diseño Gara",
+      "short": "Documenta el sistema visual real de la interfaz Gara",
+      "explicit_only": true,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-workflow-setup",
+      "title": "Preparación del flujo Gara",
+      "short": "Detecta comandos y prepara artefactos sin duplicar memoria",
+      "explicit_only": true,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-workflow-health",
+      "title": "Salud del flujo Gara",
+      "short": "Mide ejecución y trazabilidad a partir de evidencia real",
+      "explicit_only": true,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-retro",
+      "title": "Retrospectiva Gara",
+      "short": "Propone mejoras del flujo respaldadas por datos medidos",
+      "explicit_only": true,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-investigar",
+      "title": "Investigación Gara",
+      "short": "Produce un dosier con fuentes trazables y contraste",
+      "explicit_only": true,
+      "execution": "coordinated",
+      "agents": [
+        "gara-investigador",
+        "gara-rastreador",
+        "gara-contrastador"
+      ]
+    },
+    {
+      "name": "gara-convocatoria",
+      "title": "Convocatorias Gara",
+      "short": "Evalúa propuestas científicas contra criterios reales",
+      "explicit_only": true,
+      "execution": "coordinated",
+      "agents": [
+        "gara-evaluador"
+      ]
+    },
+    {
+      "name": "gara-grilling",
+      "title": "Entrevista crítica Gara",
+      "short": "Resuelve decisiones materiales mediante rondas breves",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-pdf",
+      "title": "Documentos PDF Gara",
+      "short": "Genera documentos con identidad Gara y recursos locales",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-frontend-design",
+      "title": "Interfaz Gara",
+      "short": "Diseña interfaces científicas coherentes con el producto",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-hero",
+      "title": "Opciones de portada Gara",
+      "short": "Explora propuestas diferenciadas de presentación de Gara",
+      "explicit_only": true,
+      "execution": "coordinated",
+      "agents": [
+        "gara-disenador"
+      ]
+    },
+    {
+      "name": "gara-theme-switcher",
+      "title": "Temas de interfaz Gara",
+      "short": "Mejora los temas web claro, oscuro y de sistema",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-keyboard-avoidance",
+      "title": "Teclado y formularios Gara",
+      "short": "Mantiene visibles formularios y acciones con teclado móvil",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-view-transitions",
+      "title": "Transiciones de vistas Gara",
+      "short": "Coordina cambios de paneles, pestañas y diálogos web",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-logger-system",
+      "title": "Logging Gara",
+      "short": "Integra registros útiles preservando redacción y privacidad",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-find-skills",
+      "title": "Descubrir skills para Gara",
+      "short": "Busca capacidades útiles y evita instalaciones duplicadas",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-baseline-ui",
+      "title": "Acabado de interfaz Gara",
+      "short": "Revisa el acabado visual y los estados de la interfaz",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-fixing-accessibility",
+      "title": "Accesibilidad Gara",
+      "short": "Verifica foco, teclado, contraste y semántica accesible",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-fixing-motion-performance",
+      "title": "Rendimiento de animación Gara",
+      "short": "Diagnostica tirones de movimiento con evidencia",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-fixing-metadata",
+      "title": "Metadatos web Gara",
+      "short": "Corrige metadatos HTML del alcance publicado",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-ui-animation",
+      "title": "Animación de interfaz Gara",
+      "short": "Diseña y analiza movimiento útil y accesible",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    },
+    {
+      "name": "gara-commit",
+      "title": "Commits Gara y Gara Skill",
+      "short": "Valida staging y crea commits atómicos narrativos",
+      "explicit_only": false,
+      "execution": "direct",
+      "agents": []
+    }
+  ],
+  "agents": [
+    {
+      "name": "gara-scout",
+      "description": "Localiza código y fuentes canónicas de Gara con contexto mínimo.",
+      "read_only": true,
+      "claude_tools": "Read, Glob, Grep, Bash",
+      "source": "roles/gara-scout.md",
+      "claude_disallowed_tools": "Agent"
+    },
+    {
+      "name": "gara-implementer",
+      "description": "Implementa una tarea ya especificada de Gara con aceptación real.",
+      "read_only": false,
+      "claude_tools": "Read, Write, Edit, Glob, Grep, Bash, Skill",
+      "source": "roles/gara-implementer.md",
+      "claude_disallowed_tools": "Agent"
+    },
+    {
+      "name": "gara-verifier",
+      "description": "Verifica conformidad o revisa corrección y regresiones de Gara con contexto fresco, sin haber implementado.",
+      "read_only": true,
+      "claude_tools": "Read, Glob, Grep, Bash, Skill",
+      "source": "roles/gara-verifier.md",
+      "claude_disallowed_tools": "Agent"
+    },
+    {
+      "name": "gara-revisor-visual",
+      "description": "Recorre flujos web de Gara y comprueba su acabado.",
+      "read_only": false,
+      "claude_tools": null,
+      "source": "roles/gara-revisor-visual.md",
+      "claude_disallowed_tools": "Agent"
+    },
+    {
+      "name": "gara-researcher",
+      "description": "Responde una pregunta técnica de Gara con fuentes primarias.",
+      "read_only": true,
+      "claude_tools": "Read, Glob, Grep, WebSearch, WebFetch, Skill",
+      "source": "roles/gara-researcher.md",
+      "claude_disallowed_tools": "Agent"
+    },
+    {
+      "name": "gara-investigador",
+      "description": "Organiza y sintetiza un ámbito de investigación sobre Gara.",
+      "read_only": false,
+      "claude_tools": "Read, Write, Glob, Grep, WebSearch, WebFetch, Skill",
+      "source": "roles/gara-investigador.md",
+      "claude_disallowed_tools": "Agent"
+    },
+    {
+      "name": "gara-rastreador",
+      "description": "Recoge fuentes de un ángulo concreto sin sintetizar conclusiones.",
+      "read_only": false,
+      "claude_tools": "Read, Write, Glob, Grep, WebSearch, WebFetch, Skill",
+      "source": "roles/gara-rastreador.md",
+      "claude_disallowed_tools": "Agent"
+    },
+    {
+      "name": "gara-contrastador",
+      "description": "Intenta refutar un informe mediante sus fuentes reales.",
+      "read_only": true,
+      "claude_tools": "Read, Glob, Grep, WebSearch, WebFetch, Skill",
+      "source": "roles/gara-contrastador.md",
+      "claude_disallowed_tools": "Agent"
+    },
+    {
+      "name": "gara-evaluador",
+      "description": "Puntúa propuestas de Gara contra una rúbrica explícita.",
+      "read_only": true,
+      "claude_tools": "Read, Glob, Grep",
+      "source": "roles/gara-evaluador.md",
+      "claude_disallowed_tools": "Agent"
+    },
+    {
+      "name": "gara-disenador",
+      "description": "Produce una variante visual de Gara dentro de una dirección asignada.",
+      "read_only": false,
+      "claude_tools": "Read, Write, Glob, Grep, Bash, Skill",
+      "source": "roles/gara-disenador.md",
+      "claude_disallowed_tools": "Agent"
+    }
+  ],
+  "mapping": [
+    {
+      "original": "skills/android-theme-switcher/SKILL.md",
+      "target": "gara-theme-switcher",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/baseline-ui/SKILL.md",
+      "target": "gara-baseline-ui",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/build/SKILL.md",
+      "target": "gara-build",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/convocatoria/SKILL.md",
+      "target": "gara-convocatoria",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/diseno/SKILL.md",
+      "target": "gara-diseno",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/fixing-accessibility/SKILL.md",
+      "target": "gara-fixing-accessibility",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/fixing-metadata/SKILL.md",
+      "target": "gara-fixing-metadata",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/fixing-motion-performance/SKILL.md",
+      "target": "gara-fixing-motion-performance",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/frontend-design/SKILL.md",
+      "target": "gara-frontend-design",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/grilling/SKILL.md",
+      "target": "gara-grilling",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/hero/SKILL.md",
+      "target": "gara-hero",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/investigar/SKILL.md",
+      "target": "gara-investigar",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/osix-build/SKILL.md",
+      "target": "gara-workflow",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/osix-pdf/SKILL.md",
+      "target": "gara-pdf",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/plan/SKILL.md",
+      "target": "gara-plan",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/retro/SKILL.md",
+      "target": "gara-retro",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/spec/SKILL.md",
+      "target": "gara-spec",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/tasks/SKILL.md",
+      "target": "gara-tasks",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/ui-animation/SKILL.md",
+      "target": "gara-ui-animation",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/verify/SKILL.md",
+      "target": "gara-verify",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/workflow-health/SKILL.md",
+      "target": "gara-workflow-health",
+      "status": "adapted"
+    },
+    {
+      "original": "skills/workflow-setup/SKILL.md",
+      "target": "gara-workflow-setup",
+      "status": "adapted"
+    },
+    {
+      "original": "commands/find-skills.md",
+      "target": "gara-find-skills",
+      "status": "adapted"
+    },
+    {
+      "original": "commands/logger-system.md",
+      "target": "gara-logger-system",
+      "status": "adapted"
+    },
+    {
+      "original": "commands/osix-commit.md",
+      "target": "gara-commit",
+      "status": "adapted"
+    },
+    {
+      "original": "commands/rn-keyboard-avoidance.md",
+      "target": "gara-keyboard-avoidance",
+      "status": "adapted"
+    },
+    {
+      "original": "commands/rn-stack-transitions.md",
+      "target": "gara-view-transitions",
+      "status": "adapted"
+    },
+    {
+      "original": "commands/rn-theme-switcher.md",
+      "target": "gara-theme-switcher",
+      "status": "consolidated"
+    },
+    {
+      "original": "agents/scout.md",
+      "target": "gara-scout",
+      "status": "adapted"
+    },
+    {
+      "original": "agents/implementer.md",
+      "target": "gara-implementer",
+      "status": "adapted"
+    },
+    {
+      "original": "agents/verifier.md",
+      "target": "gara-verifier",
+      "status": "adapted"
+    },
+    {
+      "original": "agents/revisor-visual.md",
+      "target": "gara-revisor-visual",
+      "status": "adapted"
+    },
+    {
+      "original": "agents/researcher.md",
+      "target": "gara-researcher",
+      "status": "adapted"
+    },
+    {
+      "original": "agents/investigador.md",
+      "target": "gara-investigador",
+      "status": "adapted"
+    },
+    {
+      "original": "agents/rastreador.md",
+      "target": "gara-rastreador",
+      "status": "adapted"
+    },
+    {
+      "original": "agents/contrastador.md",
+      "target": "gara-contrastador",
+      "status": "adapted"
+    },
+    {
+      "original": "agents/evaluador.md",
+      "target": "gara-evaluador",
+      "status": "adapted"
+    },
+    {
+      "original": "agents/disenador.md",
+      "target": "gara-disenador",
+      "status": "adapted"
+    },
+    {
+      "original": "scripts/osix-build",
+      "target": "run",
+      "status": "adapted"
+    },
+    {
+      "original": "scripts/osix-build-2",
+      "target": "export/scripts/osix-build-2",
+      "status": "historical"
+    },
+    {
+      "original": "scripts/osix-forge",
+      "target": "export/scripts/osix-forge",
+      "status": "historical"
+    },
+    {
+      "original": "scripts/osix-reanudar",
+      "target": "resume",
+      "status": "adapted"
+    },
+    {
+      "original": "scripts/osix-metricas",
+      "target": "metrics",
+      "status": "adapted"
+    },
+    {
+      "original": "scripts/osix-fixes",
+      "target": "fixes",
+      "status": "adapted"
+    },
+    {
+      "original": "scripts/claude-sesiones",
+      "target": "sessions",
+      "status": "adapted"
+    },
+    {
+      "original": "scripts/vigilar-agenda",
+      "target": "watch",
+      "status": "adapted"
+    }
+  ]
+}

@@ -1,43 +1,38 @@
 ---
 name: commit
-description: Validar y ejecutar un commit Git atomico y narrativo exclusivamente dentro del repositorio Gara. Usar cuando el usuario haya preparado staging y solicite crear el commit conforme a la politica del proyecto.
+description: Validar y ejecutar commits Git atómicos y narrativos en Gara o Gara Skill cuando el usuario invoque la skill para crear un commit conforme al staging.
 disable-model-invocation: true
 argument-hint: "[contexto opcional del cambio]"
 ---
 
 # Commit Gara
 
-Crear un commit solamente cuando el usuario invoque `/gara-commit:commit`.
+Esta skill mantiene la invocación explícita `/gara-commit:commit`. Usa el helper empaquetado en su propio directorio y aplica las instrucciones del checkout.
 
-## Procedimiento
+## Ejecución
 
-1. Ejecutar `git diff --cached --stat` y `git diff --cached` para comprender la intencion del staging.
-2. Si el staging no representa una sola unidad logica, no ejecutar commit; indicar los archivos que deben separarse.
-3. Identificar el tipo correcto entre `feat`, `fix`, `refactor` o `perf` cuando el staging contenga codigo funcional. Para cambios deterministas de documentacion, tests, estilos, build, CI o mantenimiento, dejar que el script lo infiera.
-4. Comprobar que todo `feat` incluye al menos un archivo Markdown o una ruta `docs/` en staging. El script tambien exige esta documentacion para cambios detectados de API, configuracion publica, variables de entorno o arquitectura.
-5. Redactar:
-   - un titulo breve con mayuscula inicial, sin prefijo y sin punto final;
-   - el contexto o la limitacion que motiva el cambio;
-   - una o mas decisiones tecnicas concretas.
-6. Ejecutar el validador empaquetado con esta skill:
+Ejecución directa, sin agentes. Recibe staging, intención y autorización vigente; entrega validación o commit creado mediante el helper. Si el repositorio no está admitido o hay un rechazo, explica el motivo y corrígelo dentro del alcance autorizado. No requiere delegación ni permite bypass.
+
+## Flujo
+
+Lee la [política compartida de commits](references/policy.md) e inspecciona `git diff --cached --stat` y `git diff --cached`. Identifica una única intención lógica y determina el tipo, título, motivo y decisiones técnicas. Todo `feat` y los cambios detectados de contratos públicos, configuración o arquitectura requieren documentación staged.
+
+Ejecuta el helper desde el directorio real de esta skill; el plugin es autocontenido y puede cargarse desde su propio folder:
 
 ```bash
 python "${CLAUDE_SKILL_DIR}/scripts/gara_commit.py" \
   --repo . \
-  --type <tipo-si-aplica> \
-  --title "<descripcion>" \
-  --why "<motivo>" \
-  --how "<decision tecnica>"
+  --type fix \
+  --title "Corrige consulta de estado" \
+  --why "La consulta devolvía un estado sin normalizar y rompía la actualización de resultados." \
+  --how "Normaliza el estado y cubre el caso con una prueba de regresión." \
+  --dry-run
 ```
 
-Omitir `--type` solo cuando el script pueda inferir la categoria de forma determinista. Repetir `--how` para incluir varias decisiones.
+Omite `--type` solo para categorías que el helper pueda inferir y repite `--how` cuando haya varias decisiones. `--dry-run` previsualiza el mensaje; omítelo para crear el commit autorizado. Conserva archivos ajenos y no ejecutes `git commit` manualmente después de un rechazo. Entrega resultado y SHA real cuando corresponda; esta invocación no autoriza push, merge o despliegue.
 
-Usar primero `--dry-run` si la intencion del staging, la necesidad de documentacion o el tipo de commit requieren comprobacion adicional.
-
-Si el usuario proporciona contexto al invocar la skill, incorporarlo solo si coincide con el diff staged:
+Incorpora el contexto proporcionado al invocar la skill solo cuando concuerde con el diff staged:
 
 ```text
 $ARGUMENTS
 ```
-
-No ejecutar `git commit` directamente ni eludir un rechazo del script.

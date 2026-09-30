@@ -1,169 +1,109 @@
-# gara-skill
+# Gara Skill
 
-Skill para Codex y Google Antigravity, y plugin para Claude Code, que crean commits validados
-exclusivamente en el repositorio
-[`gara`](https://github.com/PabloPC05/gara).
+Paquete de desarrollo de Gara para **Codex y Claude Code**, publicado en [PabloPC05/gara-skill](https://github.com/PabloPC05/gara-skill). Incluye 29 skills, 10 roles nativos y un ejecutor Python con aceptación comprobada, estado por spec y reanudación. Integra la skill `gara-commit` del mismo repositorio y conserva su plugin de Claude Code.
 
-La skill `gara-commit` sustituye la invocacion directa de `git commit` por un
-flujo que:
+## Estructura
 
-- valida que el staging pertenece a un checkout de `gara`;
-- bloquea mezclas detectables de cambios no atomicos;
-- exige documentacion staged para todo `feat` y ante cambios de API,
-  configuracion publica, variables de entorno o arquitectura;
-- aplica la taxonomia de commit requerida;
-- construye un mensaje narrativo con `PORQUÉ`, `CÓMO` y `DOCUMENTACIÓN`;
-- ejecuta `git commit` solo cuando se cumplen las validaciones.
+| Ruta | Contenido |
+| --- | --- |
+| `skills/gara-*/` | Fuentes de las skills: `SKILL.md`, referencias y helpers |
+| `plugins/gara-commit/` | Plugin autocontenido de commits para Claude Code |
+| `roles/` | Instrucciones comunes de los 10 agentes |
+| `profiles/gara.md` | Contexto Gara: stack, memoria, proceso y límites |
+| `references/` | Contrato de artefactos y operación del ejecutor |
+| `gara_workflow/` | Runtime, adaptadores, instalación, PDF y diagnósticos |
+| `scripts/` | Entrada CLI y conversión inicial conservada |
+| `tests/` | Pruebas con clientes simulados y repositorios temporales |
+| `catalog.json` | Inventario y correspondencia de los 46 componentes originales |
+| `.build/` | Distribuciones generadas; no se editan directamente |
 
-## Instalacion En Claude Code
+La adaptación sustituye patrones Android/React Native por flujos web existentes en Gara. Usa React/Vite/TypeScript, FastAPI, pruebas vigentes y `.ai/` como memoria; los detalles del checkout y sus instrucciones prevalecen. Consulta el [catálogo y las diferencias](docs/migration.md).
 
-La distribucion recomendada para Claude Code es el plugin `gara-commit`
-publicado en el marketplace `gara-tools` de este repositorio:
+## Instalación local
+
+Necesitas Python 3.11+, Git y el CLI del motor elegido. Clona el repositorio y ejecuta:
+
+```powershell
+git clone https://github.com/PabloPC05/gara-skill.git
+cd gara-skill
+py scripts/gara_workflow.py validate
+py scripts/gara_workflow.py install --engine both --dry-run
+py scripts/gara_workflow.py install --engine both
+py scripts/gara_workflow.py doctor --repo C:/ruta/gara
+```
+
+En macOS/Linux, sustituye `py` por `python3`. Codex recibe skills en `~/.agents/skills/` y agentes en `~/.codex/agents/`; Claude Code, en `~/.claude/skills/` y `~/.claude/agents/`. Abre sesiones nuevas después de instalar. No se cambian modelos, permisos ni configuración global. Si ya existe `~/.codex/skills/gara-commit`, se reutiliza y conserva.
+
+La instalación y `--dry-run` comparten la comprobación de colisiones; el preview no escribe ni genera `.build`. Solo actualiza archivos registrados y sin modificaciones locales. Retira componentes obsoletos del motor seleccionado si mantienen su hash; una edición local bloquea antes de escribir. `--home` permite probar otro destino. `package --destination <ruta>` genera ambas distribuciones sin instalarlas. Edita las fuentes y vuelve a instalar; el helper instalado es autocontenido. La compilación refresca las copias de `profiles/gara.md` y `references/` desde sus fuentes compartidas.
+
+Claude Code se puede instalar con `winget install --id Anthropic.ClaudeCode --exact` en Windows; inicia sesión con `claude auth login` cuando no esté autenticado. Usa `codex login status` y `claude auth status` para comprobar las cuentas. El paquete no guarda credenciales.
+
+## Skill de commits
+
+`gara-commit` valida el staging y crea commits narrativos en los repositorios **Gara y Gara Skill**. Revisa el diff indexado, agrupa una intención por commit y aporta documentación en cada `feat` o cambio de contrato público. El helper exige título breve y las secciones `PORQUÉ`, `CÓMO` y `DOCUMENTACIÓN`; `--dry-run` muestra el resultado sin crear el commit.
+
+Tras instalar el paquete, invoca `$gara-commit` en Codex o `/gara-commit` en Claude Code. Si Codex reutiliza una copia previa en `~/.codex/skills/gara-commit`, esa copia conserva su versión y puede admitir solo Gara. Para desarrollar este repositorio usa el helper del checkout:
+
+```powershell
+py skills/gara-commit/scripts/gara_commit.py --repo . --type fix --title "Corrige instalación del paquete" --why "La instalación debe conservar los cambios locales del usuario." --how "Comprueba los hashes antes de actualizar archivos." --dry-run
+```
+
+Si solo necesitas el plugin de commits en Claude Code, se conserva el marketplace existente:
 
 ```text
 /plugin marketplace add PabloPC05/gara-skill
 /plugin install gara-commit@gara-tools
-```
-
-La skill se invoca manualmente porque crea commits:
-
-```text
 /gara-commit:commit
 ```
 
-Se puede proporcionar contexto adicional, que Claude debe contrastar con el
-staging antes de usarlo:
+Ese plugin instala únicamente `gara-commit`; el comando `install --engine both` instala el paquete completo. La carpeta `skills/gara-commit/` sigue siendo instalable por separado mediante el instalador de skills de Codex, o copiable en `.agents/skills/` para Antigravity. Las copias del helper y sus pruebas en skill y plugin se comprueban idénticas en CI.
 
-```text
-/gara-commit:commit Corrige la normalizacion de estados Slurm
-```
+## Uso guiado y automático
 
-Para probar el plugin desde un checkout local:
+En Codex invoca `$gara-spec`; en Claude Code, `/gara-spec`. Continúa con `gara-plan`, `gara-tasks`, `gara-build`, `gara-verify` y `gara-review`. Las skills de fases requieren invocación explícita. Las skills complementarias cubren diseño, accesibilidad, movimiento, investigación, convocatorias, logging y PDF.
 
-```powershell
-claude --plugin-dir ".\plugins\gara-commit"
-```
+Cada skill declara su entrada, salida y modo de ejecución. **8 coordinan agentes y 21 trabajan directamente**; los diez roles tienen un caso de uso explícito. Consulta la [matriz de skills y agentes](references/delegation.md) para elegirlos y comprobar sus handoffs. Las tareas pequeñas conservan ejecución directa; sin capacidad de delegación, la skill declara el fallback y sus límites. Los roles Claude disponen de `Skill` cuando lo necesitan; el revisor visual hereda las herramientas autorizadas del entorno, incluido su navegador, sin fijar servidores MCP.
 
-La estructura del plugin sigue la documentacion oficial de
-[Claude Code Skills](https://code.claude.com/docs/en/skills) y
-[Claude Code Plugins](https://code.claude.com/docs/en/plugins).
-Las nuevas publicaciones del plugin deben incrementar la version semantica de
-`plugins/gara-commit/.claude-plugin/plugin.json` para que Claude Code detecte
-la actualizacion.
-
-## Instalacion En Google Antigravity
-
-Antigravity utiliza skills con `SKILL.md`. El paquete
-`skills/gara-commit/` de este repositorio es compatible directamente con sus
-dos ubicaciones oficiales.
-
-Instalacion global para todos los workspaces del usuario:
+El modo automático necesita una SPEC autorizada (`approved: true`), issue real `GAR-N`, rama correspondiente y checkout sin cambios ajenos. El proceso de Gara exige acreditar asignación y `In Progress` antes de implementar. No se deducen estados de Linear de un nombre de rama.
 
 ```powershell
-$temp = Join-Path ([IO.Path]::GetTempPath()) ("gara-skill-" + [guid]::NewGuid().ToString("N"))
-git clone --depth 1 https://github.com/PabloPC05/gara-skill.git $temp
-$dest = "$env:USERPROFILE\.gemini\antigravity\skills\gara-commit"
-New-Item -ItemType Directory -Force $dest | Out-Null
-Copy-Item -Recurse -Force "$temp\skills\gara-commit\*" $dest
-Remove-Item -LiteralPath $temp -Recurse -Force
+py scripts/gara_workflow.py run --repo C:/ruta/gara --slug gar-123-mejora --engine codex --dry-run
+py scripts/gara_workflow.py run --repo C:/ruta/gara --slug gar-123-mejora --engine codex
+py scripts/gara_workflow.py resume --repo C:/ruta/gara --slug gar-123-mejora --engine codex
+py scripts/gara_workflow.py status --repo C:/ruta/gara --slug gar-123-mejora
+py scripts/gara_workflow.py metrics --repo C:/ruta/gara --slug gar-123-mejora
 ```
 
-Instalacion limitada a un checkout concreto de `gara`:
+Elige `--engine claude` para Claude Code. Cada fase usa su cliente y agentes nativos; cuando no hay delegación disponible o autorizada, trabaja secuencialmente y lo declara. El coordinador ejecuta las aceptaciones y mantiene los estados; un mensaje del modelo no verifica una tarea. Los commits pasan por `gara-commit`.
+
+`run` termina con validación y revisión local. Añade `--publish` solo para publicar la rama, abrir/reutilizar la PR y pasar a `In Review` mediante capacidades autenticadas. La revisión humana exigida por Gara sigue pendiente. No se lanzan trabajos HPC reales al probar la herramienta.
+
+Verify y review exigen evidencia estructurada ligada al SHA de implementación. Publish solo escribe `ENTREGA.md`: cualquier cambio en código o artefactos cerrados invalida el cierre. El lock abarca todo el checkout, aunque se usen slugs distintos. Una sesión principal o un nombre de agente en el informe no acreditan revisión independiente.
+
+Los artefactos viven en `specs/<slug>/`; el estado, locks y resúmenes en el directorio Git privado. Un checkpoint se reanuda con `--ack-checkpoint` tras revisión real. Véanse [contrato de artefactos](references/artifacts.md) y [operación, permisos y recuperación](references/runtime.md). Salidas: 0 éxito/dry-run, 2 bloqueo, 1 fallo, 130 interrupción.
+
+## Desarrollo y pruebas
+
+El runtime utiliza la biblioteca estándar. PyYAML es opcional para validar metadatos con herramientas externas; ffmpeg, numpy/scipy/OpenCV sirven para helpers de análisis de vídeo. PDF requiere Chrome/Chromium/Edge local y usa fuentes y logo embebidos.
+
+Ruff proporciona un único formatter y linter para el código Python propio; su configuración está en `pyproject.toml`. Los originales y helpers externos conservados quedan excluidos. Para preparar desarrollo: `py -m venv .venv` y `.venv/Scripts/python -m pip install -e ".[dev,validation]"`.
+
+En macOS/Linux, usa `.venv/bin/python` en los comandos del entorno virtual.
 
 ```powershell
-cd C:\ruta\a\gara
-$temp = Join-Path ([IO.Path]::GetTempPath()) ("gara-skill-" + [guid]::NewGuid().ToString("N"))
-git clone --depth 1 https://github.com/PabloPC05/gara-skill.git $temp
-$dest = ".agents\skills\gara-commit"
-New-Item -ItemType Directory -Force $dest | Out-Null
-Copy-Item -Recurse -Force "$temp\skills\gara-commit\*" $dest
-Remove-Item -LiteralPath $temp -Recurse -Force
+py -m unittest discover -s tests -v
+py skills/gara-commit/scripts/test_gara_commit.py -v
+py plugins/gara-commit/skills/commit/scripts/test_gara_commit.py -v
+py scripts/gara_workflow.py validate
+py scripts/gara_workflow.py package
+.venv/Scripts/python -m ruff check .
+.venv/Scripts/python -m ruff format --check .
 ```
 
-Antigravity selecciona la skill a partir de su descripcion. El usuario puede
-pedirle al agente que use `gara-commit` para crear el commit staged.
+Las pruebas ejecutan comandos de aceptación reales en repositorios temporales, sin servicios científicos, credenciales, Linear ni publicación. Los simuladores comprueban contratos y recuperación; no equivalen a una ejecución real de modelos ni a CI remoto. El ejemplo PDF se genera con `skills/gara-pdf/scripts/build_pdf.py` y recursos de esa skill.
 
-La estructura sigue la documentacion oficial de
-[Google Antigravity Agent Skills](https://antigravity.google/docs/skills).
-Google indica que `.agents/skills/` es la ruta de workspace vigente y que
-`.agent/skills/` se conserva solo por compatibilidad.
+GitHub Actions ejecuta la suite, Ruff, validación del catálogo y construcción e instalación en un destino temporal. El clon contiene las fuentes y recursos necesarios; `export.zip` y `export/` se conservan solo en el checkout original y no se necesitan para instalar. `AGENTS.md` permanece sin modificaciones.
 
-## Instalacion En Codex
+El [registro de validación](docs/validation.md) documenta resultados, detección nativa y límites observados. La [auditoría y sus correcciones](docs/audit/README.md) conservan las observaciones iniciales y enlazan las regresiones posteriores.
 
-Instalar desde GitHub con la skill del sistema `skill-installer`, o ejecutar su
-script auxiliar:
-
-```powershell
-python "$env:USERPROFILE\.codex\skills\.system\skill-installer\scripts\install-skill-from-github.py" `
-  --repo PabloPC05/gara-skill `
-  --path skills/gara-commit
-```
-
-Reiniciar Codex despues de instalar la skill para que aparezca como
-`$gara-commit`.
-
-## Uso Del Script
-
-Dentro de cualquier rama del repositorio `gara`, preparar el staging y ejecutar:
-
-```powershell
-python "$env:USERPROFILE\.codex\skills\gara-commit\scripts\gara_commit.py" `
-  --repo . `
-  --type fix `
-  --title "Corrige consulta de estado Slurm" `
-  --why "La consulta podia devolver un estado tecnico sin normalizar y romper el polling del frontend." `
-  --how "Normaliza los estados recibidos desde sacct." `
-  --how "Cubre el caso corregido con una prueba de regresion."
-```
-
-En una instalacion global de Antigravity, sustituir la ruta del script por:
-
-```powershell
-python "$env:USERPROFILE\.gemini\antigravity\skills\gara-commit\scripts\gara_commit.py" `
-  --repo . `
-  --type fix `
-  --title "Corrige consulta de estado Slurm" `
-  --why "La consulta podia devolver un estado tecnico sin normalizar y romper el polling del frontend." `
-  --how "Normaliza los estados recibidos desde sacct."
-```
-
-En una instalacion Antigravity del workspace `gara`, usar:
-
-```powershell
-python ".agents\skills\gara-commit\scripts\gara_commit.py" `
-  --repo . `
-  --type fix `
-  --title "Corrige consulta de estado Slurm" `
-  --why "La consulta podia devolver un estado tecnico sin normalizar y romper el polling del frontend." `
-  --how "Normaliza los estados recibidos desde sacct."
-```
-
-Usar `--dry-run` para validar el staging y previsualizar el mensaje sin crear
-un commit.
-
-Para cambios cuyo tipo se deduce de forma determinista, como documentacion o
-tests aislados, `--type` puede omitirse. Para cambios de codigo funcional se
-debe indicar `feat`, `fix`, `refactor` o `perf`.
-
-Todo `feat` debe incluir en staging al menos un archivo Markdown o un archivo
-de una carpeta `docs/`. La misma exigencia se aplica si el script detecta
-cambios de API, configuracion publica, variables de entorno o arquitectura.
-
-## Desarrollo
-
-Validar la estructura de la skill:
-
-```powershell
-python "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" `
-  "skills\gara-commit"
-```
-
-Ejecutar las pruebas:
-
-```powershell
-python "skills\gara-commit\scripts\test_gara_commit.py" -v
-```
-
-El workflow `.github/workflows/test.yml` ejecuta estas comprobaciones en
-GitHub Actions para cada `push` y `pull_request`, tanto para el paquete Codex
-como para el plugin Claude Code.
+Para una entrada CLI editable opcional: `py -m pip install -e .`, después `gara-workflow doctor`. La generación e instalación del paquete de skills se realizan desde este checkout; no se ofrece un wheel independiente de recursos. Usa cuatro espacios en Python y `ruff format`, formato Markdown sencillo y cambios de una intención. Conserva licencias y [procedencia](docs/provenance.md); no añadas secretos o rutas personales a los defaults.

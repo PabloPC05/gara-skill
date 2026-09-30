@@ -103,15 +103,26 @@ class GaraCommitTests(unittest.TestCase):
         self.assertIn("variables de entorno", process.stderr)
 
     def test_new_test_does_not_make_component_edit_architectural(self) -> None:
-        self.stage("frontend/src/components/Viewer.tsx", "export function Viewer() { return null; }\n")
+        self.stage(
+            "frontend/src/components/Viewer.tsx",
+            "export function Viewer() { return null; }\n",
+        )
         self.run_git("commit", "-q", "-m", "baseline")
-        self.stage("frontend/src/components/Viewer.tsx", "export function Viewer() { return <main />; }\n")
-        self.stage("frontend/src/test/Viewer.test.tsx", "test('renders', () => true);\n")
+        self.stage(
+            "frontend/src/components/Viewer.tsx",
+            "export function Viewer() { return <main />; }\n",
+        )
+        self.stage(
+            "frontend/src/test/Viewer.test.tsx", "test('renders', () => true);\n"
+        )
         process = self.invoke("--type", "fix", "--dry-run")
         self.assertEqual(0, process.returncode, process.stderr)
 
     def test_requires_docs_for_new_architecture_module(self) -> None:
-        self.stage("frontend/src/components/NewPanel.tsx", "export function NewPanel() { return null; }\n")
+        self.stage(
+            "frontend/src/components/NewPanel.tsx",
+            "export function NewPanel() { return null; }\n",
+        )
         process = self.invoke("--type", "feat", "--dry-run")
         self.assertEqual(2, process.returncode)
         self.assertIn("arquitectura", process.stderr)

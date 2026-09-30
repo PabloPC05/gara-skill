@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-01",
+  "unittest": {
+    "passed": 119,
+    "new_regressions": 64,
+    "duration_seconds": 643.447
+  },
+  "audit_reproductions_resolved": 7,
+  "source_skills_valid": 29,
+  "codex_generated_skills_valid": 29,
+  "native_agent_files_valid": 20,
+  "managed_files": 340,
+  "incorrect_installed_hashes": [],
+  "local_links_checked": 127,
+  "missing_local_links": [],
+  "protected_sha256": {
+    "AGENTS.md": "0386f157665fd76eac130c28d4dabfa45f443eacc2ce14a53a5563f543dd5cb1",
+    "export.zip": "1e4ba1ef15345f43b7542a3108b3c68338158722dfa7506f9bf69a189c8a5eb7"
+  },
+  "original_files_identical": 80,
+  "native_read_probes": [
+    {
+      "engine": "codex",
+      "status": "completed",
+      "delegation_observations": 0,
+      "completed_agent_observed": false
+    },
+    {
+      "engine": "claude",
+      "status": "completed",
+      "delegation_observations": 0,
+      "completed_agent_observed": false,
+      "gara_skills_registered": 29,
+      "gara_agents_registered": 10,
+      "skill_tool_available": false
+    }
+  ]
+}

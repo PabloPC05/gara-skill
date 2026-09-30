@@ -5,13 +5,13 @@
     "email": "pablo.pc2005@gmail.com"
   },
   "metadata": {
-    "description": "Herramientas de control de versiones para Gara"
+    "description": "Herramientas de control de versiones para Gara y Gara Skill"
   },
   "plugins": [
     {
       "name": "gara-commit",
       "source": "./plugins/gara-commit",
-      "description": "Valida y crea commits atomicos en el repositorio Gara",
+      "description": "Valida y crea commits atomicos en Gara y Gara Skill",
       "author": {
         "name": "Pablo Pardo"
       },

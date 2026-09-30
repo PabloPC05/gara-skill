@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create policy-compliant commits only inside the Gara repository."""
+"""Create policy-compliant commits only inside Gara or Gara Skill."""
 
 from __future__ import annotations
 
@@ -12,11 +12,34 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 
-TYPES = ("feat", "fix", "refactor", "perf", "test", "style", "docs", "build", "ci", "chore")
+TYPES = (
+    "feat",
+    "fix",
+    "refactor",
+    "perf",
+    "test",
+    "style",
+    "docs",
+    "build",
+    "ci",
+    "chore",
+)
 CODE_TYPES = {"feat", "fix", "refactor", "perf"}
+REPOSITORY_NAMES = frozenset({"gara", "gara-skill"})
 DOC_NAMES = {"readme.md", "readme", "architecture.md", "api.md"}
 STYLE_EXTENSIONS = {".css", ".scss", ".sass", ".less", ".styl"}
-CODE_EXTENSIONS = {".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".py", ".java", ".go", ".rs"}
+CODE_EXTENSIONS = {
+    ".js",
+    ".jsx",
+    ".ts",
+    ".tsx",
+    ".mjs",
+    ".cjs",
+    ".py",
+    ".java",
+    ".go",
+    ".rs",
+}
 BUILD_NAMES = {
     "package.json",
     "package-lock.json",
@@ -71,7 +94,9 @@ def git(repo: Path, *args: str, check: bool = True) -> subprocess.CompletedProce
         check=False,
     )
     if check and process.returncode != 0:
-        message = process.stderr.strip() or process.stdout.strip() or "git devolvio un error."
+        message = (
+            process.stderr.strip() or process.stdout.strip() or "git devolvio un error."
+        )
         raise PolicyError(message)
     return process
 
@@ -81,22 +106,35 @@ def repository_root(location: Path) -> Path:
     if process.returncode != 0:
         raise PolicyError("El comando debe ejecutarse dentro de un repositorio Git.")
     root = Path(process.stdout.strip()).resolve()
-    origin = git(root, "config", "--get", "remote.origin.url", check=False).stdout.strip().lower()
-    origin_is_gara = bool(re.search(r"(?:/|:|\\)gara(?:\.git)?/?$", origin))
-    if root.name.lower() != "gara" and not origin_is_gara:
-        raise PolicyError("Este comando solo puede ejecutarse dentro del repositorio 'gara'.")
+    origin = (
+        git(root, "config", "--get", "remote.origin.url", check=False)
+        .stdout.strip()
+        .lower()
+    )
+    origin_is_allowed = bool(
+        re.search(r"(?:/|:|\\)(?:gara|gara-skill)(?:\.git)?/?$", origin)
+    )
+    if root.name.lower() not in REPOSITORY_NAMES and not origin_is_allowed:
+        raise PolicyError(
+            "Este comando solo puede ejecutarse dentro del repositorio 'gara' "
+            "o del repositorio 'gara-skill'."
+        )
     return root
 
 
 def cached_paths(root: Path, diff_filter: str = "ACDMRTUXB") -> list[str]:
-    output = git(root, "diff", "--cached", "--name-only", "-z", f"--diff-filter={diff_filter}").stdout
+    output = git(
+        root, "diff", "--cached", "--name-only", "-z", f"--diff-filter={diff_filter}"
+    ).stdout
     return [path.replace("\\", "/") for path in output.split("\0") if path]
 
 
 def staged_paths(root: Path) -> list[str]:
     paths = cached_paths(root)
     if not paths:
-        raise PolicyError("No hay archivos en staging; indexe una unidad logica antes de commitear.")
+        raise PolicyError(
+            "No hay archivos en staging; indexe una unidad logica antes de commitear."
+        )
     return paths
 
 
@@ -117,13 +155,23 @@ def classify_path(path: str) -> str:
     suffix = Path(lower).suffix
     if is_documentation(path):
         return "docs"
-    if lower.startswith(".github/") or name.startswith("dockerfile") or name in {"docker-compose.yml", "docker-compose.yaml", ".gitlab-ci.yml"}:
+    if (
+        lower.startswith(".github/")
+        or name.startswith("dockerfile")
+        or name in {"docker-compose.yml", "docker-compose.yaml", ".gitlab-ci.yml"}
+    ):
         return "ci"
     if name in BUILD_NAMES:
         return "build"
     if name in MAINTENANCE_NAMES:
         return "chore"
-    if "/test/" in f"/{lower}/" or ".test." in name or ".spec." in name:
+    if (
+        "/test/" in f"/{lower}/"
+        or "/tests/" in f"/{lower}/"
+        or name.startswith("test_")
+        or ".test." in name
+        or ".spec." in name
+    ):
         return "test"
     if suffix in STYLE_EXTENSIONS:
         return "style"
@@ -137,21 +185,32 @@ def added_or_removed_diff(root: Path) -> str:
 def detect_documentation_reasons(paths: Sequence[str], diff: str) -> tuple[str, ...]:
     source_paths = [path for path in paths if classify_path(path) == "code"]
     changed_lines = "\n".join(
-        line for line in diff.splitlines() if (line.startswith("+") or line.startswith("-")) and not line.startswith(("+++", "---"))
+        line
+        for line in diff.splitlines()
+        if (line.startswith("+") or line.startswith("-"))
+        and not line.startswith(("+++", "---"))
     )
     reasons: list[str] = []
     lower_paths = [path.lower() for path in paths]
-    if any(Path(path).name.lower().startswith(".env") for path in paths) or ENV_PATTERN.search(changed_lines):
+    if any(
+        Path(path).name.lower().startswith(".env") for path in paths
+    ) or ENV_PATTERN.search(changed_lines):
         reasons.append("variables de entorno o configuracion operativa")
-    if any("/routes/" in f"/{path}/" or "/api/" in f"/{path}/" for path in lower_paths) and API_PATTERN.search(changed_lines):
+    if any(
+        "/routes/" in f"/{path}/" or "/api/" in f"/{path}/" for path in lower_paths
+    ) and API_PATTERN.search(changed_lines):
         reasons.append("API publica o endpoints")
-    if any(Path(path).name.lower() in {"config.js", "config.ts"} for path in source_paths) and API_PATTERN.search(changed_lines):
+    if any(
+        Path(path).name.lower() in {"config.js", "config.ts"} for path in source_paths
+    ) and API_PATTERN.search(changed_lines):
         reasons.append("configuracion publica")
     return tuple(dict.fromkeys(reasons))
 
 
 def validate_atomicity(changes: Sequence[StagedChange]) -> None:
-    categories = {change.category for change in changes if change.category not in {"docs", "test"}}
+    categories = {
+        change.category for change in changes if change.category not in {"docs", "test"}
+    }
     if "code" in categories and "style" in categories:
         raise PolicyError(
             "El staging mezcla logica funcional con estilos. Indexe y confirme cada proposito por separado."
@@ -163,7 +222,9 @@ def validate_atomicity(changes: Sequence[StagedChange]) -> None:
             f"El staging mezcla categorias independientes ({listed}). Indexe archivos por unidad logica."
         )
     if "build" in categories and independent:
-        raise PolicyError("Los cambios de build no pueden mezclarse con otra categoria independiente.")
+        raise PolicyError(
+            "Los cambios de build no pueden mezclarse con otra categoria independiente."
+        )
 
 
 def infer_type(changes: Sequence[StagedChange]) -> str | None:
@@ -188,7 +249,9 @@ def analyze(root: Path) -> Analysis:
     paths = staged_paths(root)
     changes = tuple(StagedChange(path, classify_path(path)) for path in paths)
     validate_atomicity(changes)
-    documentation_paths = tuple(change.path for change in changes if change.category == "docs")
+    documentation_paths = tuple(
+        change.path for change in changes if change.category == "docs"
+    )
     reasons = list(detect_documentation_reasons(paths, added_or_removed_diff(root)))
     structural_paths = cached_paths(root, "ADR")
     if any(
@@ -235,7 +298,9 @@ def validate_required_documentation(kind: str, analysis: Analysis) -> None:
 def validate_title(title: str) -> str:
     cleaned = title.strip()
     if any(cleaned.lower().startswith(f"{kind}:") for kind in TYPES):
-        raise PolicyError("Pase solo la descripcion en --title; el prefijo lo genera la skill.")
+        raise PolicyError(
+            "Pase solo la descripcion en --title; el prefijo lo genera la skill."
+        )
     if not cleaned:
         raise PolicyError("La descripcion corta no puede estar vacia.")
     if len(cleaned) > 50:
@@ -251,11 +316,15 @@ def validate_title(title: str) -> str:
 def validate_text(label: str, value: str, minimum: int = 1) -> str:
     cleaned = value.strip()
     if len(cleaned) < minimum:
-        raise PolicyError(f"El bloque {label} debe contener una explicacion suficiente.")
+        raise PolicyError(
+            f"El bloque {label} debe contener una explicacion suficiente."
+        )
     return cleaned
 
 
-def build_message(kind: str, title: str, why: str, how: Iterable[str], docs: Sequence[str]) -> str:
+def build_message(
+    kind: str, title: str, why: str, how: Iterable[str], docs: Sequence[str]
+) -> str:
     bullets = [f"- {validate_text('CÓMO', item)}" for item in how]
     if not bullets:
         raise PolicyError("Debe proporcionar al menos una decision tecnica con --how.")
@@ -269,13 +338,36 @@ def build_message(kind: str, title: str, why: str, how: Iterable[str], docs: Seq
 
 
 def parser() -> argparse.ArgumentParser:
-    result = argparse.ArgumentParser(description="Valida y crea commits narrativos atomicos para Gara.")
-    result.add_argument("--repo", default=".", help="Ruta dentro del checkout de Gara (por defecto: .).")
-    result.add_argument("--type", choices=TYPES, help="Tipo semantico; obligatorio para cambios de codigo.")
-    result.add_argument("--title", required=True, help="Descripcion sin prefijo, maximo 50 caracteres.")
-    result.add_argument("--why", required=True, help="Contexto o limitacion que motiva el cambio.")
-    result.add_argument("--how", action="append", required=True, help="Decision tecnica; repetir para varias viñetas.")
-    result.add_argument("--dry-run", action="store_true", help="Validar y mostrar el mensaje sin ejecutar commit.")
+    result = argparse.ArgumentParser(
+        description="Valida y crea commits narrativos atomicos para Gara y Gara Skill."
+    )
+    result.add_argument(
+        "--repo",
+        default=".",
+        help="Ruta dentro del checkout de Gara o Gara Skill (por defecto: .).",
+    )
+    result.add_argument(
+        "--type",
+        choices=TYPES,
+        help="Tipo semantico; obligatorio para cambios de codigo.",
+    )
+    result.add_argument(
+        "--title", required=True, help="Descripcion sin prefijo, maximo 50 caracteres."
+    )
+    result.add_argument(
+        "--why", required=True, help="Contexto o limitacion que motiva el cambio."
+    )
+    result.add_argument(
+        "--how",
+        action="append",
+        required=True,
+        help="Decision tecnica; repetir para varias viñetas.",
+    )
+    result.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Validar y mostrar el mensaje sin ejecutar commit.",
+    )
     return result
 
 
@@ -298,9 +390,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             analysis.documentation_paths,
         )
         print(f"Repositorio: {root}")
-        print("Staging validado: " + ", ".join(f"{item.path} [{item.category}]" for item in analysis.changes))
+        print(
+            "Staging validado: "
+            + ", ".join(f"{item.path} [{item.category}]" for item in analysis.changes)
+        )
         if analysis.documentation_reasons:
-            print("Documentacion requerida por: " + ", ".join(analysis.documentation_reasons))
+            print(
+                "Documentacion requerida por: "
+                + ", ".join(analysis.documentation_reasons)
+            )
         print("\nMensaje de commit:\n")
         print(message)
         if args.dry_run:
@@ -308,7 +406,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         commit = git(root, "commit", "-m", message, check=False)
         if commit.returncode != 0:
-            raise PolicyError(commit.stderr.strip() or commit.stdout.strip() or "No se pudo crear el commit.")
+            raise PolicyError(
+                commit.stderr.strip()
+                or commit.stdout.strip()
+                or "No se pudo crear el commit."
+            )
         print("\n" + commit.stdout.strip())
         return 0
     except PolicyError as error:
