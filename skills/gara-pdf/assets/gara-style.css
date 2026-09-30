@@ -1,0 +1,32 @@
+@page {
+  size: A4; margin: 23mm 19mm 22mm;
+  @top-left { content: "Gara · Análisis estructural"; font: 8pt Lato, sans-serif; color: #71717a; }
+  @bottom-left { content: __FOOTER__; font: 8pt Lato, sans-serif; color: #71717a; }
+  @bottom-right { content: counter(page) " / " counter(pages); font: 8pt Lato, sans-serif; color: #71717a; }
+}
+* { box-sizing: border-box; }
+body { font: 10.5pt/1.55 Lato, sans-serif; color: #18181b; margin: 0; }
+header { height: 14mm; display: flex; align-items: center; gap: 3mm; border-bottom: .3mm solid #e4e4e7; padding-bottom: 2mm; }
+header img { width: 8mm; height: 10mm; object-fit: contain; }
+header span { font-weight: 700; font-size: 9pt; }
+footer { display: none; }
+.cover { min-height: 215mm; padding-top: 32mm; break-after: page; }
+.eyebrow { color: #52525b; font-size: 9pt; letter-spacing: .12em; }
+h1 { max-width: 140mm; font-size: 32pt; line-height: 1.15; margin: 6mm 0 18mm; }
+h2 { font-size: 19pt; line-height: 1.25; margin: 10mm 0 4mm; break-after: avoid; }
+h3 { font-size: 13pt; margin: 7mm 0 3mm; break-after: avoid; }
+p, li { orphans: 3; widows: 3; }
+dl { display: grid; grid-template-columns: 30mm 1fr; gap: 3mm 5mm; }
+dt { color: #71717a; } dd { margin: 0; }
+table { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin: 6mm 0; }
+thead { display: table-header-group; }
+th { text-align: left; background: #f4f4f5; font-weight: 700; }
+th, td { border-bottom: .3mm solid #e4e4e7; padding: 3mm; vertical-align: top; }
+tr, figure, .callout { break-inside: avoid; }
+blockquote, .callout { margin: 6mm 0; border-left: 1mm solid #3b82f6; padding: 3mm 5mm; background: #f4f4f5; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #f4f4f5; padding: 4mm; font-size: 8.5pt; }
+code { font-family: Consolas, monospace; overflow-wrap: anywhere; }
+img { max-width: 100%; }
+a { color: #1d4ed8; text-decoration: none; overflow-wrap: anywhere; }
+.page-break { break-before: page; }
+.muted { color: #71717a; }
