@@ -159,6 +159,12 @@ def main(argv=None) -> int:
     parser.add_argument("--keep-html", action="store_true")
     args = parser.parse_args(argv)
     try:
+        if args.keep_html and args.out.with_suffix(".html").resolve() == (
+            args.content.resolve()
+        ):
+            raise WorkflowError(
+                "--keep-html sobrescribiría el contenido de entrada; cambia --out o --content."
+            )
         render(
             args.content.read_text(encoding="utf-8"),
             json.loads(args.meta.read_text(encoding="utf-8")),

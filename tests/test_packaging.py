@@ -10,6 +10,7 @@ from pathlib import Path
 from gara_workflow.common import ROOT, WorkflowError, digest
 from gara_workflow.packaging import build, frontmatter, install, validate
 from gara_workflow.pdf import document
+from gara_workflow.pdf import main as pdf_main
 
 
 class Packaging(unittest.TestCase):
@@ -35,6 +36,40 @@ class Packaging(unittest.TestCase):
             )
         if (ROOT / "export").is_dir():
             shutil.copytree(ROOT / "export", self.root / "export")
+
+    def test_keep_html_never_overwrites_the_input_content(self):
+        content = self.root / "informe.html"
+        content.write_text("<p>original</p>", encoding="utf-8")
+        meta = self.root / "meta.json"
+        meta.write_text("{}", encoding="utf-8")
+        code = pdf_main(
+            [
+                "--content",
+                str(content),
+                "--meta",
+                str(meta),
+                "--out",
+                str(self.root / "informe.pdf"),
+                "--assets",
+                str(self.root),
+                "--keep-html",
+            ]
+        )
+        self.assertEqual(code, 1)
+        self.assertEqual(content.read_text(encoding="utf-8"), "<p>original</p>")
+
+    def test_checked_in_reference_copies_match_their_shared_source(self):
+        # The build refreshes installed copies; these are the ones read from a checkout.
+        for shared in (
+            "profiles/gara.md",
+            "references/artifacts.md",
+            "references/runtime.md",
+            "references/delegation.md",
+        ):
+            source = (ROOT / shared).read_text(encoding="utf-8")
+            for copy in (ROOT / "skills").glob(f"*/references/{Path(shared).name}"):
+                with self.subTest(copy=copy.relative_to(ROOT).as_posix()):
+                    self.assertEqual(copy.read_text(encoding="utf-8"), source)
 
     def test_catalog_covers_export(self):
         self.assertEqual(
