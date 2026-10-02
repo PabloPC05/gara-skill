@@ -1,6 +1,8 @@
 # Auditoría general de Gara Skill
 
-Informe inicial: 30 de septiembre de 2026. Alcance: las 29 skills, los 10 roles, sus distribuciones Codex/Claude, el ejecutor, la instalación, la documentación y las pruebas. Este directorio no tiene historial Git para una revisión de cambios.
+Informe inicial: 30 de septiembre de 2026. Alcance: las 29 skills, los 10 roles, sus distribuciones Codex/Claude, el ejecutor, la instalación, la documentación y las pruebas. En esa fecha el directorio no tenía historial Git.
+
+**Segunda auditoría (2 de octubre de 2026):** [skills y workflow](2026-10-02-skills-y-workflow.md), con el modelo de confianza de las aceptaciones y sus correcciones.
 
 **Estado posterior:** los cambios y las regresiones están descritos en [corrections.md](corrections.md). Los apartados de dictamen y hallazgos siguientes conservan el diagnóstico inicial; [observations.json](observations.json) conserva sus resultados históricos. [resolution.json](resolution.json) registra la repetición de las siete reproducciones sobre la implementación corregida.
 

@@ -7,7 +7,7 @@ Comprobaciones del 1 de octubre de 2026 en Windows, con Python 3.13.15, Codex CL
 - Catálogo: 29 skills, 10 agentes y correspondencia de los 46 componentes originales.
 - Skill-creator: 29 fuentes y 29 variantes Codex válidas; formatos de los 20 agentes generados comprobados.
 - Instalación local: 340 archivos gestionados. Codex recibe 28 skills y reutiliza `gara-commit`; Claude recibe 29. Reinstalar informa cero cambios y retiradas: [installation-final.json](audit/installation-final.json).
-- Ocho skills coordinadas y 21 directas; diez roles con casos de uso en la [matriz](../references/delegation.md). Se conservan 15 políticas explícitas y modelos heredados.
+- Ocho skills coordinadas y 21 directas; diez roles con casos de uso en la [matriz](../references/delegation.md). Se conservan las 15 políticas explícitas de la exportación original, más `gara-commit` y `gara-find-skills` desde la [segunda auditoría](audit/2026-10-02-skills-y-workflow.md); los modelos se heredan.
 
 ## Ejecutor
 
