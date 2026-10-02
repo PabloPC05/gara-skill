@@ -15,13 +15,24 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 from .common import (
+    GATE_ENVIRONMENT,
     Blocked,
     WorkflowError,
     redact,
     redact_data,
+    redacted_tail,
     resolve_command,
     save_json,
 )
+
+
+def gate_environment() -> dict[str, str]:
+    """Acceptance commands run outside the client's sandbox: pass no credentials."""
+    allowed = {name.upper() for name in GATE_ENVIRONMENT}
+    return {
+        **{k: v for k, v in os.environ.items() if k.upper() in allowed},
+        "PYTHONIOENCODING": "utf-8",
+    }
 
 
 @dataclass
@@ -189,32 +200,51 @@ def observe_delegations(engine: str, event: dict, observed: list[dict]) -> None:
 
 
 def stop_owned_process(process: subprocess.Popen) -> None:
+    """Never raise: this runs while another exception is propagating."""
     if process.poll() is not None:
         return
-    if os.name == "nt":
-        subprocess.run(
-            ["taskkill", "/PID", str(process.pid), "/T", "/F"],
-            capture_output=True,
-            timeout=20,
-        )
-    else:
-        os.killpg(process.pid, signal.SIGTERM)
+    try:
+        if os.name == "nt":
+            subprocess.run(
+                ["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                capture_output=True,
+                timeout=20,
+            )
+        else:
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+                process.wait(timeout=5)
+            except (ProcessLookupError, subprocess.TimeoutExpired):
+                pass
+            # Descendants can outlive the leader and ignore SIGTERM.
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError):
+                pass
+        process.wait(timeout=20)
+    except (subprocess.TimeoutExpired, OSError):
         try:
-            process.wait(timeout=5)
-        except subprocess.TimeoutExpired:
-            os.killpg(process.pid, signal.SIGKILL)
-    process.wait(timeout=20)
+            process.kill()
+        except OSError:
+            pass
 
 
 def stream_process(
-    argv: list[str], cwd: Path, *, input_text: str = "", timeout: float = 3600
+    argv: list[str],
+    cwd: Path,
+    *,
+    input_text: str = "",
+    timeout: float = 3600,
+    env: dict[str, str] | None = None,
 ) -> tuple[int, list[str], str]:
     options = (
         {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
         if os.name == "nt"
         else {"start_new_session": True}
     )
-    environment = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    environment = (
+        env if env is not None else {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    )
     process = subprocess.Popen(
         resolve_command(argv, cwd),
         cwd=cwd,
@@ -266,7 +296,11 @@ def stream_process(
                 lines.append(line.rstrip())
             else:
                 errors.append(line.rstrip())
-        return process.wait(timeout=5), list(lines), "\n".join(errors)[-12000:]
+        return (
+            process.wait(timeout=5),
+            list(lines),
+            redacted_tail("\n".join(errors), 12000),
+        )
     except BaseException:
         stop_owned_process(process)
         raise
@@ -330,23 +364,25 @@ def parse_result(engine: str, code: int, lines: list[str], stderr: str) -> Resul
         or stderr.strip()
         or "El cliente no emitió un cierre de sesión válido."
     )
-    marker = re.search(r"<!-- gara-result -->\s*(\{[^\n]+\})", summary)
+    # Quoted repository text can contain a marker; the closing one is the agent's own.
+    markers = re.findall(r"<!-- gara-result -->\s*(\{[^\n]+\})", summary)
     session = redact(session)
     explicit = ""
-    if marker:
+    if markers:
         try:
-            value = json.loads(marker[1])
+            value = json.loads(markers[-1])
             explicit = value.get("status", "") if isinstance(value, dict) else ""
         except json.JSONDecodeError:
             pass
     infra = bool(
         re.search(
-            r"rate.?limit|quota|overloaded|connection (?:reset|closed)|529|429",
+            r"rate.?limit|quota|overloaded|connection (?:reset|closed)|\b(?:529|429)\b",
             summary,
             re.I,
         )
     )
-    authentication = bool(
+    # A completed explicit result that merely quotes a login message is not an auth failure.
+    authentication = explicit != "completed" and bool(
         re.search(
             r"not logged in|authentication required|please run /login|invalid api key",
             summary,

@@ -136,6 +136,12 @@ elif phase == "tasks":
     code = "from pathlib import Path; assert Path('feature.txt').read_text() == 'done'"
     if failure:
         code = "raise SystemExit(1)"
+    if mode == "env-probe":
+        code = (
+            "import os; from pathlib import Path; "
+            "assert 'GARA_SECRET_PROBE' not in os.environ; "
+            "assert Path('feature.txt').read_text() == 'done'"
+        )
     if mode == "gate-escape":
         code = "from pathlib import Path; Path('foreign.txt').write_text('bad')"
     tasks = [
@@ -146,7 +152,7 @@ elif phase == "tasks":
             "files": ["feature.txt"],
             "briefing": "Crea el archivo con done.",
             "acceptance": [{"argv": ["python", "-c", code], "cwd": ".", "timeout": 10}],
-            "status": "pending",
+            "status": "verified" if mode == "initial-verified" else "pending",
             "weight": 1,
             "checkpoint": mode == "checkpoint",
         }

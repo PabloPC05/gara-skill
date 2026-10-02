@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import contextlib
 import copy
+import io
 import json
 import os
+import signal
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,6 +23,8 @@ from gara_workflow.common import (
     task_fingerprint,
     validate_tasks,
 )
+from gara_workflow.cli import main as cli_main
+from gara_workflow.cli import terminate_as_interrupt
 from gara_workflow.engines import parse_result, stream_process
 from gara_workflow.runner import Runner, flow_lock
 
@@ -35,7 +40,7 @@ def contract():
                 "depends_on": [],
                 "files": ["feature.txt"],
                 "briefing": "Implementa el caso.",
-                "acceptance": [{"argv": ["python", "-c", "pass"]}],
+                "acceptance": [{"argv": ["python", "-c", "assert 1 + 1 == 2"]}],
                 "status": "pending",
                 "weight": 1,
             }
@@ -101,6 +106,54 @@ class Contracts(unittest.TestCase):
         data["tasks"][0]["acceptance"] = []
         self.invalid(data)
 
+    def test_acceptance_that_cannot_fail_is_rejected(self):
+        for argv in (
+            ["true"],
+            [":"],
+            ["python", "-c", "pass"],
+            ["python3", "-c", ""],
+            ["py", "-c", "'ok'"],
+        ):
+            with self.subTest(argv=argv):
+                data = contract()
+                data["tasks"][0]["acceptance"] = [{"argv": argv}]
+                self.invalid(data)
+
+    def test_real_python_acceptance_is_accepted(self):
+        data = contract()
+        data["tasks"][0]["acceptance"] = [
+            {"argv": ["python", "-c", "import sys; sys.exit(0)"]},
+            {"argv": ["python", "-m", "unittest"], "timeout": 3600},
+        ]
+        validate_tasks(data, self.root, "GAR-123", {"R1"})
+
+    def test_tasks_cannot_assign_hooks_client_settings_or_secrets(self):
+        for name in (
+            ".claude/settings.json",
+            ".codex/config.toml",
+            ".husky/pre-commit",
+            ".env",
+            ".env.local",
+            "HUSKY~1/pre-commit",
+        ):
+            with self.subTest(name=name):
+                data = contract()
+                data["tasks"][0]["files"] = [name]
+                self.invalid(data)
+        data = contract()
+        data["tasks"][0]["files"] = [".env.example", ".github/workflows/ci.yml"]
+        validate_tasks(data, self.root, "GAR-123", {"R1"})
+
+    def test_acceptance_cwd_cannot_enter_protected_directories(self):
+        data = contract()
+        data["tasks"][0]["acceptance"][0]["cwd"] = ".claude"
+        self.invalid(data)
+
+    def test_acceptance_timeout_has_an_upper_bound(self):
+        data = contract()
+        data["tasks"][0]["acceptance"][0]["timeout"] = 3601
+        self.invalid(data)
+
     def test_malformed_nested_types_report_failure(self):
         for key in ("requirements", "depends_on", "files", "status"):
             with self.subTest(key=key):
@@ -116,6 +169,9 @@ class Contracts(unittest.TestCase):
             "../secret",
             ".git/config",
             ".GIT/config",
+            ".git./config",
+            ".git /config",
+            "GIT~1/config",
             "C:/secret",
             "a\\b",
             "src/*",
@@ -247,7 +303,12 @@ class Execution(unittest.TestCase):
 
     def runner(self, engine="codex", timeout=20):
         return Runner(
-            self.repo, self.slug, engine, client=str(self.client), timeout=timeout
+            self.repo,
+            self.slug,
+            engine,
+            client=str(self.client),
+            timeout=timeout,
+            confirm_contract=False,
         )
 
     def phases(self):
@@ -311,6 +372,71 @@ class Execution(unittest.TestCase):
             self.runner().run()
         self.assertEqual(self.runner().run(acknowledge=True)["status"], "completed")
         self.assertEqual(self.phases().count("build"), 1)
+
+    def test_tasks_contract_pauses_for_review_unless_acknowledged(self):
+        runner = Runner(
+            self.repo, self.slug, "codex", client=str(self.client), timeout=20
+        )
+        with self.assertRaises(Blocked) as raised:
+            runner.run()
+        self.assertIn("T1:", str(raised.exception))
+        self.assertEqual(self.state()["checkpoint"], "tasks")
+        self.assertEqual(self.phases(), ["plan", "tasks"])
+        with self.assertRaises(Blocked):
+            runner.run()
+        self.assertEqual(runner.run(acknowledge=True)["status"], "completed")
+        self.assertEqual(self.phases().count("tasks"), 1)
+
+    def test_acknowledging_up_front_skips_the_contract_pause(self):
+        runner = Runner(
+            self.repo, self.slug, "codex", client=str(self.client), timeout=20
+        )
+        self.assertEqual(runner.run(acknowledge=True)["status"], "completed")
+
+    def test_model_cannot_start_tasks_as_verified(self):
+        os.environ["GARA_FAKE_MODE"] = "initial-verified"
+        with self.assertRaises(Blocked):
+            self.runner().run()
+        self.assertNotIn("build", self.phases())
+        self.assertEqual(self.state()["status"], "blocked")
+
+    def test_gate_does_not_inherit_secrets_from_the_environment(self):
+        os.environ["GARA_FAKE_MODE"] = "env-probe"
+        os.environ["GARA_SECRET_PROBE"] = "must-not-reach-the-gate"
+        self.addCleanup(os.environ.pop, "GARA_SECRET_PROBE", None)
+        self.assertEqual(self.runner().run()["status"], "completed")
+
+    def test_unexpected_exception_is_recorded_as_failed(self):
+        with patch.object(Runner, "build", side_effect=KeyError("reviews")):
+            with self.assertRaises(KeyError):
+                self.runner().run()
+        self.assertEqual(self.state()["status"], "failed")
+
+    def test_reset_requires_confirmation_and_keeps_artifacts(self):
+        self.runner().run()
+        arguments = ["reset", "--repo", str(self.repo), "--slug", self.slug]
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(cli_main(arguments), 2)
+        self.assertTrue((runtime_dir(self.repo, self.slug) / "state.json").is_file())
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(cli_main([*arguments, "--yes"]), 0)
+        self.assertFalse(runtime_dir(self.repo, self.slug).exists())
+        self.assertTrue((self.repo / "specs" / self.slug / "TAREAS.md").is_file())
+
+    def test_reset_waits_for_the_active_run(self):
+        from gara_workflow.runner import checkout_lock_path
+
+        arguments = ["reset", "--repo", str(self.repo), "--slug", self.slug, "--yes"]
+        with flow_lock(checkout_lock_path(self.repo)):
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(cli_main(arguments), 2)
+
+    def test_termination_signals_become_an_interrupt_and_are_restored(self):
+        before = signal.getsignal(signal.SIGTERM)
+        with terminate_as_interrupt():
+            with self.assertRaises(KeyboardInterrupt):
+                signal.raise_signal(signal.SIGTERM)
+        self.assertEqual(signal.getsignal(signal.SIGTERM), before)
 
     def test_completed_resume_skips_model_phases(self):
         self.runner().run()

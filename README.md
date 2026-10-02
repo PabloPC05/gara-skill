@@ -80,7 +80,7 @@ Elige `--engine claude` para Claude Code. Cada fase usa su cliente y agentes nat
 
 Verify y review exigen evidencia estructurada ligada al SHA de implementación. Publish solo escribe `ENTREGA.md`: cualquier cambio en código o artefactos cerrados invalida el cierre. El lock abarca todo el checkout, aunque se usen slugs distintos. Una sesión principal o un nombre de agente en el informe no acreditan revisión independiente.
 
-Los artefactos viven en `specs/<slug>/`; el estado, locks y resúmenes en el directorio Git privado. Un checkpoint se reanuda con `--ack-checkpoint` tras revisión real. Véanse [contrato de artefactos](references/artifacts.md) y [operación, permisos y recuperación](references/runtime.md). Salidas: 0 éxito/dry-run, 2 bloqueo, 1 fallo, 130 interrupción.
+Los artefactos viven en `specs/<slug>/`; el estado, locks y resúmenes en el directorio Git privado. Tras escribir `TAREAS.md` el ejecutor se detiene para que una persona revise los comandos de aceptación que lanzará fuera del sandbox del cliente; un checkpoint se reanuda con `--ack-checkpoint` tras revisión real (se puede dar desde el primer `run`). Si el estado queda irrecuperable tras un merge o rebase, `reset --repo <ruta> --slug <slug> --yes` borra solo el estado privado, no `specs/`. Véanse [contrato de artefactos](references/artifacts.md) y [operación, permisos y recuperación](references/runtime.md). Salidas: 0 éxito/dry-run, 2 bloqueo, 1 fallo, 130 interrupción (también SIGTERM y SIGHUP).
 
 ## Desarrollo y pruebas
 

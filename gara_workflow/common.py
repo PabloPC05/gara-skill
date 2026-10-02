@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ast
 import hashlib
 import json
 import os
@@ -18,6 +19,31 @@ TASK_BLOCK = re.compile(r"<!-- gara-tasks:v1 -->\s*```json\s*\n(.*?)\n```", re.S
 SLUG = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*\Z")
 ISSUE = re.compile(r"GAR-[1-9][0-9]*\Z")
 STATUSES = {"pending", "running", "blocked", "verified"}
+PROTECTED_NAMES = {".git", ".claude", ".codex", ".husky", ".env"}  # task contracts only
+MAX_GATE_TIMEOUT = 3600
+# Variables a gate may inherit; credentials and Git redirection never pass through.
+GATE_ENVIRONMENT = (
+    "PATH",
+    "PATHEXT",
+    "SYSTEMROOT",
+    "SYSTEMDRIVE",
+    "COMSPEC",
+    "WINDIR",
+    "HOME",
+    "USERPROFILE",
+    "APPDATA",
+    "LOCALAPPDATA",
+    "TEMP",
+    "TMP",
+    "TMPDIR",
+    "LANG",
+    "LANGUAGE",
+    "LC_ALL",
+    "LC_CTYPE",
+    "TERM",
+    "CI",
+    "VIRTUAL_ENV",
+)
 
 
 class WorkflowError(Exception):
@@ -65,6 +91,10 @@ def sensitive_field(name: str) -> bool:
         "cookie",
         "set_cookie",
         "private_key",
+        "secret_key",
+        "access_key",
+        "session_key",
+        "auth",
     } or normalized.endswith(
         (
             "_token",
@@ -74,6 +104,10 @@ def sensitive_field(name: str) -> bool:
             "_api_key",
             "_access_key",
             "_private_key",
+            "_secret_key",
+            "_session_key",
+            "_signing_key",
+            "_encryption_key",
         )
     )
 
@@ -117,8 +151,29 @@ def _redact_text(text: str, depth: int) -> str:
             cursor = start + length
         pieces.append(text[cursor:])
         text = "".join(pieces)
-    text = re.sub(r"(?i)(authorization\s*:\s*bearer\s+)\S+", r"\1[REDACTED]", text)
-    text = re.sub(r"\bsk-[A-Za-z0-9_-]{16,}", "[REDACTED]", text)
+    text = re.sub(
+        r"(?i)(authorization\s*[:=]\s*(?:(?:bearer|basic|token|digest)\s+)?)"
+        r"[^\s,;'\"]+",
+        r"\1[REDACTED]",
+        text,
+    )
+    text = re.sub(
+        r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?(?:-----END [A-Z ]*PRIVATE KEY-----|\Z)",
+        "[REDACTED]",
+        text,
+        flags=re.S,
+    )
+    text = re.sub(
+        r"(\b[A-Za-z][A-Za-z0-9+.-]*://[^\s/:@]+:)[^\s/@]+@", r"\1[REDACTED]@", text
+    )
+    for pattern in (
+        r"\bsk-[A-Za-z0-9_-]{16,}",
+        r"\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}",
+        r"\bgithub_pat_[A-Za-z0-9_]{20,}",
+        r"\bAKIA[0-9A-Z]{16}\b",
+        r"\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}",
+    ):
+        text = re.sub(pattern, "[REDACTED]", text)
 
     def quoted(match: re.Match) -> str:
         if not sensitive_field(match["key"]):
@@ -140,10 +195,12 @@ def _redact_text(text: str, depth: int) -> str:
     def assignment(match: re.Match) -> str:
         if not sensitive_field(match["key"]):
             return match[0]
-        if (
-            match["key"].lower() == "authorization"
-            and match["value"].lower() == "bearer"
-        ):
+        if match["key"].lower() == "authorization" and match["value"].lower() in {
+            "bearer",
+            "basic",
+            "token",
+            "digest",
+        }:
             return match[0]
         return match["key"] + match["separator"] + "[REDACTED]"
 
@@ -157,6 +214,14 @@ def _redact_text(text: str, depth: int) -> str:
 
 def redact(text: str) -> str:
     return _redact_text(text, 0)
+
+
+def redacted_tail(text: str, limit: int) -> str:
+    """Scrub before truncating, so a cut cannot separate a key from its value."""
+    window = text[-limit * 4 :]
+    if len(window) < len(text) and "\n" in window:
+        window = window.split("\n", 1)[1]
+    return redact(window)[-limit:]
 
 
 def git(repo: Path, *args: str, check: bool = True) -> str:
@@ -188,6 +253,26 @@ def repository(location: Path, *, gara: bool = True) -> Path:
     return root
 
 
+def _plain(part: str) -> str:
+    # Windows drops trailing dots and spaces, so ".git." and ".git " name .git.
+    return part.rstrip(" .").lower()
+
+
+def _short_alias(part: str) -> bool:
+    """8.3 aliases such as GIT~1 can name a protected directory on Windows."""
+    return re.search(r"~[0-9]+(?:\.|\Z)", _plain(part)) is not None
+
+
+def protected_part(part: str) -> bool:
+    """Names a task contract may never assign: they change Git, hooks or client settings."""
+    name = _plain(part)
+    if _short_alias(part) or name in PROTECTED_NAMES:
+        return True
+    return name.startswith(".env.") and not name.endswith(
+        (".example", ".sample", ".template")
+    )
+
+
 def inside(root: Path, relative: str) -> Path:
     if (
         not isinstance(relative, str)
@@ -199,7 +284,7 @@ def inside(root: Path, relative: str) -> Path:
     if (
         path.is_absolute()
         or ".." in path.parts
-        or any(part.lower() == ".git" for part in path.parts)
+        or any(_plain(part) == ".git" or _short_alias(part) for part in path.parts)
     ):
         raise WorkflowError(f"Ruta fuera del contrato: {relative}")
     target = (root / path).resolve()
@@ -249,6 +334,26 @@ def read_tasks(path: Path, repo: Path, issue: str, requirements: set[str]) -> di
         raise WorkflowError(f"JSON de tareas inválido: {error}") from error
     validate_tasks(data, repo, issue, requirements)
     return data
+
+
+def trivial_acceptance(argv: list[str]) -> bool:
+    """Heuristic: reject commands that cannot fail. It does not prove a test is good."""
+    program = Path(argv[0]).stem.lower()
+    if program in {"true", ":"}:
+        return True
+    if program in {"python", "python3", "py"} and "-c" in argv[1:-1]:
+        code = argv[argv.index("-c") + 1]
+        try:
+            body = ast.parse(code).body
+        except SyntaxError:
+            return False
+        return all(
+            isinstance(node, ast.Pass)
+            or isinstance(node, ast.Expr)
+            and isinstance(node.value, ast.Constant)
+            for node in body
+        )
+    return False
 
 
 def validate_tasks(data: dict, repo: Path, issue: str, requirements: set[str]) -> None:
@@ -309,6 +414,12 @@ def validate_tasks(data: dict, repo: Path, issue: str, requirements: set[str]) -
         if any(not isinstance(dep, str) for dep in task["depends_on"]):
             raise WorkflowError(f"{identifier}: dependencias inválidas.")
         for name in task["files"]:
+            if not isinstance(name, str):
+                raise WorkflowError(f"{identifier}: las rutas deben ser texto.")
+            if any(protected_part(part) for part in Path(name).parts):
+                raise WorkflowError(
+                    f"{identifier}: {name} cambia hooks, ajustes de cliente o secretos."
+                )
             target = inside(repo, name)
             if target.is_dir():
                 raise WorkflowError(
@@ -329,12 +440,20 @@ def validate_tasks(data: dict, repo: Path, issue: str, requirements: set[str]) -
                 for arg in gate["argv"]
             ):
                 raise WorkflowError(f"{identifier}: argumentos inválidos.")
-            inside(repo, gate.get("cwd", "."))
-            if (
-                type(gate.get("timeout", 600)) is not int
-                or gate.get("timeout", 600) < 1
+            if trivial_acceptance(gate["argv"]):
+                raise WorkflowError(
+                    f"{identifier}: la aceptación no comprueba nada; usa una prueba real."
+                )
+            if any(
+                protected_part(part) for part in Path(str(gate.get("cwd", "."))).parts
             ):
-                raise WorkflowError(f"{identifier}: timeout inválido.")
+                raise WorkflowError(f"{identifier}: cwd no permitido.")
+            inside(repo, gate.get("cwd", "."))
+            timeout = gate.get("timeout", 600)
+            if type(timeout) is not int or not 1 <= timeout <= MAX_GATE_TIMEOUT:
+                raise WorkflowError(
+                    f"{identifier}: timeout inválido (1 a {MAX_GATE_TIMEOUT} s)."
+                )
     if covered != requirements:
         raise WorkflowError("Hay requisitos de la SPEC sin tarea ni prueba asignada.")
     by_id = {t["id"]: t for t in tasks}

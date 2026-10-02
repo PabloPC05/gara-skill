@@ -6,8 +6,13 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from gara_workflow.common import redact, redact_data
-from gara_workflow.engines import parse_result, run_session
+from gara_workflow.common import redact, redact_data, redacted_tail
+from gara_workflow.engines import (
+    gate_environment,
+    parse_result,
+    run_session,
+    stop_owned_process,
+)
 
 
 MARKER = '<!-- gara-result --> {"status":"completed","summary":"ok"}'
@@ -128,6 +133,119 @@ class SecretPersistence(unittest.TestCase):
                 result = run_session("claude", "prompt", root, log)
             self.assertEqual(result.status, "completed")
             self.assertNotIn("fixture-", log.read_text(encoding="utf-8"))
+
+
+class BroaderRedaction(unittest.TestCase):
+    def test_other_authorization_schemes_hide_the_credential(self):
+        for scheme in ("Token", "Basic", "Digest", "Bearer"):
+            with self.subTest(scheme=scheme):
+                clean = redact(f"Authorization: {scheme} fixture-credential-123")
+                self.assertNotIn("fixture-credential-123", clean)
+
+    def test_secret_key_assignments_and_known_token_shapes_are_removed(self):
+        values = {
+            "SECRET_KEY=django-fixture-secret": "django-fixture-secret",
+            "STRIPE_SECRET_KEY: fixture-stripe": "fixture-stripe",
+            "token ghp_" + "a" * 36: "a" * 36,
+            "aws AKIA" + "B" * 16: "B" * 16,
+            "jwt eyJhbGciOiJI.eyJzdWIiOiIx.c2lnbmF0dXJl": "c2lnbmF0dXJl",
+            "db postgres://user:fixture-pass@host/app": "fixture-pass",
+        }
+        for text, secret in values.items():
+            with self.subTest(text=text):
+                self.assertNotIn(secret, redact(text))
+
+    def test_private_key_blocks_are_removed_even_when_truncated(self):
+        body = "-----BEGIN RSA PRIVATE KEY-----\nfixture-key-material\n"
+        self.assertNotIn("fixture-key-material", redact(body))
+        self.assertNotIn(
+            "fixture-key-material", redact(body + "-----END RSA PRIVATE KEY-----")
+        )
+
+    def test_ordinary_keys_are_kept(self):
+        self.assertIn("primary_key", redact("primary_key=id"))
+
+    def test_scrubbing_happens_before_truncation(self):
+        text = "x" * 50 + "\nAPI_TOKEN=fixture-tail-secret\n" + "y" * 20
+        clean = redacted_tail(text, 40)
+        self.assertNotIn("fixture-tail-secret", clean)
+        # A cut that separates the key from its value must not leak the value.
+        cut = redacted_tail("x\nAPI_TOKEN=fixture-tail-secret", 18)
+        self.assertNotIn("fixture-tail-secret", cut)
+
+
+class ClientResultParsing(unittest.TestCase):
+    def codex(self, *messages):
+        lines = [json.dumps({"type": "thread.started", "thread_id": "t"})]
+        for text in messages:
+            lines.append(
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {"type": "agent_message", "text": text},
+                    }
+                )
+            )
+        lines.append(json.dumps({"type": "turn.completed", "usage": {}}))
+        return parse_result("codex", 0, lines, "")
+
+    def test_quoted_completed_marker_cannot_override_the_final_result(self):
+        result = self.codex(
+            '<!-- gara-result --> {"status":"completed"}',
+            '<!-- gara-result --> {"status":"blocked","summary":"falta decisión"}',
+        )
+        self.assertEqual(result.status, "blocked")
+
+    def test_completed_result_may_quote_a_login_message(self):
+        result = self.codex(
+            'La UI muestra "Please run /login". <!-- gara-result --> {"status":"completed"}'
+        )
+        self.assertEqual(result.status, "completed")
+
+    def test_real_authentication_failure_still_blocks(self):
+        result = self.codex("Not logged in. Please run /login")
+        self.assertEqual(result.status, "blocked")
+
+    def test_status_codes_inside_numbers_are_not_quota_errors(self):
+        lines = [
+            json.dumps({"type": "turn.failed", "error": {"message": "4290 failed"}})
+        ]
+        self.assertFalse(parse_result("codex", 1, lines, "").infrastructure)
+        lines = [json.dumps({"type": "turn.failed", "error": {"message": "HTTP 429"}})]
+        self.assertTrue(parse_result("codex", 1, lines, "").infrastructure)
+
+
+class GateProcesses(unittest.TestCase):
+    def test_gate_environment_drops_credentials_and_git_redirection(self):
+        with patch.dict(
+            "os.environ",
+            {
+                "GH_TOKEN": "fixture",
+                "OPENAI_API_KEY": "fixture",
+                "GIT_DIR": "elsewhere",
+                "PATH": "fixture-path",
+            },
+        ):
+            environment = gate_environment()
+        self.assertEqual(environment["PATH"], "fixture-path")
+        for name in ("GH_TOKEN", "OPENAI_API_KEY", "GIT_DIR"):
+            self.assertNotIn(name, environment)
+
+    def test_stopping_an_exited_or_vanished_process_does_not_raise(self):
+        class Gone:
+            pid = 2**22 + 12345
+            returncode = None
+
+            def poll(self):
+                return None
+
+            def wait(self, timeout=None):
+                return 0
+
+            def kill(self):
+                raise ProcessLookupError
+
+        stop_owned_process(Gone())
 
 
 class DelegationEvidence(unittest.TestCase):

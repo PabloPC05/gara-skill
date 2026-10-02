@@ -21,6 +21,8 @@ from .common import (
     inside,
     read_tasks,
     redact,
+    redact_data,
+    redacted_tail,
     repository,
     runtime_dir,
     save_json,
@@ -28,7 +30,7 @@ from .common import (
     task_fingerprint,
     write_tasks,
 )
-from .engines import run_session, stream_process
+from .engines import gate_environment, run_session, stream_process
 from .reviews import (
     implementation_files,
     implementation_matches,
@@ -153,7 +155,9 @@ class Runner:
         client: str | None = None,
         timeout: float = 3600,
         retry_infra: int = 1,
+        confirm_contract: bool = True,
     ):
+        self.confirm_contract = confirm_contract
         self.repo = repository(repo)
         self.slug, self.engine = slug, engine
         self.artifacts = inside(self.repo, f"specs/{slug}")
@@ -269,6 +273,8 @@ class Runner:
                 raise Blocked(
                     "Cambios fuera del alcance de esta ejecución: "
                     + ", ".join(sorted(foreign))
+                    + ". Si llegan de un merge o rebase de la rama base, reconcilia y "
+                    "usa reset --slug <slug> --yes para reiniciar el estado."
                 )
 
     def artifact_names(self) -> set[str]:
@@ -478,13 +484,16 @@ Elige un único valor real para status. Un mensaje sin esta marca bloquea el eje
                     )
                 print(f"{task['id']}: validación {number}", flush=True)
                 code, lines, stderr = stream_process(
-                    gate["argv"], cwd, timeout=gate.get("timeout", 600)
+                    gate["argv"],
+                    cwd,
+                    timeout=gate.get("timeout", 600),
+                    env=gate_environment(),
                 )
                 record = {
-                    "argv": gate["argv"],
+                    "argv": redact_data(gate["argv"]),
                     "cwd": gate.get("cwd", "."),
                     "returncode": code,
-                    "stdout": redact("\n".join(lines)[-10000:]),
+                    "stdout": redacted_tail("\n".join(lines), 10000),
                     "stderr": redact(stderr),
                     "time": time.time(),
                 }
@@ -561,6 +570,12 @@ Elige un único valor real para status. Un mensaje sin esta marca bloquea el eje
                 not known or known != file_hashes(self.repo, task["files"])
             ):
                 task["status"] = "running" if known else "pending"
+                # Rebuilt code returns to review: only the contract confirmation remains valid.
+                self.state["acknowledged_checkpoints"] = [
+                    name
+                    for name in self.state["acknowledged_checkpoints"]
+                    if name == "tasks"
+                ]
                 if "build" in self.state["completed_phases"]:
                     self.state["completed_phases"].remove("build")
                 self.invalidate_reviews()
@@ -814,7 +829,9 @@ Elige un único valor real para status. Un mensaje sin esta marca bloquea el eje
                         )
                         if not path.is_file() or path.stat().st_size == 0:
                             raise Blocked(f"La fase {phase} no produjo su artefacto.")
-                        if "\n## Bloqueado" in path.read_text(encoding="utf-8"):
+                        if re.search(
+                            r"^##\s+Bloqueado\b", path.read_text(encoding="utf-8"), re.M
+                        ):
                             raise Blocked(f"{path.name} contiene un bloqueo pendiente.")
                         if phase == "plan":
                             self.state["plan_hash"] = digest(path)
@@ -822,9 +839,37 @@ Elige un único valor real para status. Un mensaje sin esta marca bloquea el eje
                             data = read_tasks(
                                 path, self.repo, self.issue, self.requirements
                             )
+                            if any(
+                                task["status"] != "pending" for task in data["tasks"]
+                            ):
+                                raise Blocked(
+                                    "La fase tasks debe dejar todas las tareas en pending; "
+                                    "el ejecutor escribe los estados tras ejecutar la aceptación."
+                                )
                             self.state["tasks_hash"] = task_fingerprint(data)
                         self.state["completed_phases"].append(phase)
                         self.save()
+                        if (
+                            phase == "tasks"
+                            and self.confirm_contract
+                            and not acknowledge
+                        ):
+                            self.state["checkpoint"] = "tasks"
+                            raise Blocked(
+                                "Checkpoint tasks: el modelo escribió los comandos de aceptación "
+                                "que el ejecutor lanzará fuera del sandbox del cliente. Revísalos y "
+                                "reanuda con --ack-checkpoint.\n"
+                                + "\n".join(
+                                    f"{task['id']}: "
+                                    + redact(
+                                        " ".join(
+                                            json.dumps(gate["argv"], ensure_ascii=False)
+                                            for gate in task["acceptance"]
+                                        )
+                                    )
+                                    for task in data["tasks"]
+                                )
+                            )
                 data = read_tasks(
                     self.tasks_path, self.repo, self.issue, self.requirements
                 )
@@ -871,7 +916,15 @@ Elige un único valor real para status. Un mensaje sin esta marca bloquea el eje
             except Blocked as error:
                 self.save("blocked", str(error))
                 raise
-            except (WorkflowError, OSError, KeyboardInterrupt) as error:
+            except (
+                WorkflowError,
+                OSError,
+                ValueError,
+                KeyError,
+                TypeError,
+                subprocess.SubprocessError,
+                KeyboardInterrupt,
+            ) as error:
                 self.save(
                     "failed",
                     str(error) or "Interrumpido; reconcilia antes de reanudar.",

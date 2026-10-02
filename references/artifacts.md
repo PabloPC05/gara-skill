@@ -15,7 +15,7 @@ approved: true
 
 `approved: true` registra una autorización real del usuario para esa versión concreta; no se infiere de silencio, timeout o de una petición de análisis. Si ya autorizó implementar los requisitos presentados, conserva esa autorización sin volver a pedirla.
 
-Cada requisito utiliza un encabezado `### R1 — Resultado observable`. Incluye escenarios normales, fallos y criterios de aceptación. Registra alcance, exclusiones y decisiones materiales. `## Bloqueado` indica que faltan decisiones y detiene el flujo automático.
+Cada requisito utiliza un encabezado `### R1 — Resultado observable`. Incluye escenarios normales, fallos y criterios de aceptación. Registra alcance, exclusiones y decisiones materiales. `## Bloqueado` indica que faltan decisiones y detiene el flujo automático; también lo aplican PLAN.md y TAREAS.md (un encabezado `## Bloqueado` al inicio de línea).
 
 ## PLAN.md
 
@@ -54,14 +54,14 @@ Es Markdown legible con un bloque JSON identificado por `<!-- gara-tasks:v1 -->`
 ```
 ````
 
-Los nombres del ejemplo ilustran el formato: el plan debe identificar rutas y pruebas reales del checkout. `argv` es una lista de argumentos, no una cadena de shell. Usa rutas relativas con `/`; no asignes directorios, glob patterns, rutas absolutas o `.git`.
+Los nombres del ejemplo ilustran el formato: el plan debe identificar rutas y pruebas reales del checkout. `argv` es una lista de argumentos, no una cadena de shell. Usa rutas relativas con `/`; no asignes directorios, glob patterns, rutas absolutas, `.git` (incluidas variantes de Windows como `.git.` o `GIT~1`), `.claude/`, `.codex/`, `.husky/` ni archivos `.env`. La aceptación debe poder fallar: se rechazan `true`, `python -c pass` y equivalentes, y `timeout` va de 1 a 3600 segundos.
 
 - IDs únicos; cada requisito debe estar cubierto por alguna tarea y su aceptación.
 - Dependencias programadas en tandas anteriores; no hay dependencia dentro de una tanda.
 - Hasta tres tareas por tanda, sin colisiones de archivos; carga total máxima 4. Pesos: 1 ligera, 2 pesada, 4 exclusiva. Si una aceptación arranca la aplicación o usa recursos compartidos, programa esa tarea de manera conservadora.
 - Los contratos y pruebas que permiten dividir el trabajo van primero. Prioriza el riesgo entre tareas con las mismas dependencias.
-- Estados: `pending`, `running`, `blocked`, `verified`. El ejecutor escribe estados y `evidence` después de ejecutar la aceptación. El implementador no inventa resultados ni cambia pruebas para declararlas verdes.
-- `checkpoint: true` pausa después de la tanda para una comprobación humana; `resume --ack-checkpoint` registra que se revisó.
+- Estados: `pending`, `running`, `blocked`, `verified`. Un contrato nuevo entrega todas las tareas en `pending`; el ejecutor escribe estados y `evidence` después de ejecutar la aceptación. El implementador no inventa resultados ni cambia pruebas para declararlas verdes.
+- `checkpoint: true` pausa después de la tanda para una comprobación humana; `resume --ack-checkpoint` registra que se revisó. Además, el ejecutor pausa siempre tras escribir `TAREAS.md` para que una persona revise los comandos de aceptación antes de lanzarlos.
 
 El briefing debe bastar para construir sin inventar decisiones materiales. La lectura de documentación adicional necesaria es explícita. Si faltan datos, registra el hueco y bloquea lo dependiente.
 

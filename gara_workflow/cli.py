@@ -6,10 +6,13 @@ import argparse
 import importlib.util
 import json
 import shutil
+import signal
 import subprocess
 import sys
+import threading
 import time
 import tomllib
+from contextlib import contextmanager
 from pathlib import Path
 
 from .common import (
@@ -113,7 +116,38 @@ def metrics(directory: Path) -> dict:
     }
 
 
+@contextmanager
+def terminate_as_interrupt():
+    """Turn SIGTERM/SIGHUP/SIGBREAK into KeyboardInterrupt so state is saved and the
+    client process group is stopped, exactly as for Ctrl+C."""
+    if threading.current_thread() is not threading.main_thread():
+        yield
+        return
+
+    def handler(signum, frame):
+        raise KeyboardInterrupt
+
+    previous = {}
+    for name in ("SIGTERM", "SIGHUP", "SIGBREAK"):
+        number = getattr(signal, name, None)
+        if number is not None:
+            try:
+                previous[number] = signal.signal(number, handler)
+            except (ValueError, OSError):
+                pass
+    try:
+        yield
+    finally:
+        for number, old in previous.items():
+            signal.signal(number, old)
+
+
 def main(argv: list[str] | None = None) -> int:
+    with terminate_as_interrupt():
+        return _main(argv)
+
+
+def _main(argv: list[str] | None = None) -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(
@@ -128,6 +162,7 @@ def main(argv: list[str] | None = None) -> int:
             "status",
             "watch",
             "metrics",
+            "reset",
             "fixes",
             "sessions",
             "install",
@@ -148,6 +183,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--publish", action="store_true")
     parser.add_argument("--ack-checkpoint", action="store_true")
+    parser.add_argument(
+        "--yes",
+        action="store_true",
+        help="Confirma reset: borra el estado privado de la ejecución.",
+    )
     parser.add_argument(
         "--resume-session",
         action="store_true",
@@ -231,6 +271,24 @@ def main(argv: list[str] | None = None) -> int:
                             acknowledge=args.ack_checkpoint,
                             resume_last=args.resume_session,
                         )
+                    elif args.command == "reset":
+                        from .runner import checkout_lock_path, flow_lock
+
+                        if not args.yes:
+                            raise Blocked(
+                                "reset borra el estado privado de la ejecución (no toca specs/); "
+                                "repite con --yes tras reconciliar el checkout."
+                            )
+                        target = runtime_dir(repo, args.slug)
+                        with flow_lock(checkout_lock_path(repo)):
+                            existed = target.is_dir()
+                            if existed:
+                                shutil.rmtree(target)
+                        result = {
+                            "status": "reset",
+                            "slug": args.slug,
+                            "removed": existed,
+                        }
                     elif args.command == "metrics":
                         result = metrics(runtime_dir(repo, args.slug))
                     else:
@@ -258,7 +316,14 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 2
-    except (WorkflowError, OSError, ValueError, subprocess.SubprocessError) as error:
+    except (
+        WorkflowError,
+        OSError,
+        ValueError,
+        KeyError,
+        TypeError,
+        subprocess.SubprocessError,
+    ) as error:
         print(
             json.dumps(
                 {"status": "failed", "reason": redact(str(error))}, ensure_ascii=False

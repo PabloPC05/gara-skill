@@ -88,7 +88,9 @@ class RunnerRegressions(unittest.TestCase):
         self.addCleanup(self.provider_patch.stop)
 
     def runner(self, slug=None):
-        return Runner(self.repo, slug or self.slug, "codex", timeout=20)
+        return Runner(
+            self.repo, slug or self.slug, "codex", timeout=20, confirm_contract=False
+        )
 
     def state(self):
         return json.loads(
