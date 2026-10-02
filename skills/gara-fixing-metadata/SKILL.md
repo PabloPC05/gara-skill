@@ -1,6 +1,6 @@
 ---
 name: "gara-fixing-metadata"
-description: "Corrige metadatos HTML del alcance publicado en la interfaz web de Gara; usar para el comportamiento concreto descrito."
+description: "Corrige título, descripción, canonical, Open Graph y otros metadatos HTML del alcance publicado de la web de Gara; usar cuando se describa un problema de metadatos o de previsualización."
 ---
 
 # Metadatos web Gara
@@ -18,7 +18,7 @@ Aplica estos criterios al alcance pedido en Gara y a su sistema visual existente
 1. Identify pages with missing or incorrect metadata (titles, descriptions, canonical, OG tags)
 2. Audit against the priority rules below — fix critical issues (duplicates, indexing) first
 3. Ensure title, description, canonical, and og:url all agree with each other
-4. Verify social cards render correctly on a real URL, not localhost
+4. Verify social cards render correctly on a real URL, not localhost, using a deployment that is already authorized; do not publish just to test
 5. Keep diffs minimal and scoped to metadata only — do not refactor unrelated code
 ## when to apply
 
@@ -105,12 +105,12 @@ Reference these guidelines when:
 
 - prefer minimal changes, do not refactor unrelated code
 - do not migrate frameworks or SEO libraries unless requested
-- follow the project's existing metadata pattern (Next.js metadata API, react-helmet, manual head, etc.)
+- follow the project's existing metadata pattern (react-helmet, a manual head in index.html or the project's own helper; Gara is a Vite SPA, not Next.js)
 
 ## review guidance
 
 - fix critical issues first (duplicates, canonical, indexing)
 - ensure title, description, canonical, and og:url agree
-- verify social cards on a real URL, not localhost
+- verify social cards on a real URL, not localhost, without publishing only for that purpose
 - prefer stable, boring metadata over clever or dynamic
 - keep diffs minimal and scoped to metadata only

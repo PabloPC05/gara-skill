@@ -19,7 +19,7 @@ Clasifica por impacto y aporta ubicación, desencadenante y evidencia. Si delega
 
 Corrige solo fallos dentro del alcance y con autorización existente. Estilo, refactors y rendimiento no medido quedan como opcionales. Cambios de requisito, migraciones nuevas o ampliaciones materiales vuelven a planificación. Mantén estables SPEC y PLAN.
 
-Escribe REVISION.md con SHA, hallazgos, reproducciones, pruebas realizadas, limitaciones y pendientes. Ejecuta aceptación de las correcciones antes de gara-commit. No marques Done ni publiques por el hecho de revisar.
+Escribe REVISION.md como el bloque `gara-review:v1` de artifacts.md: SHA real, requisitos y aceptaciones cubiertos, hallazgos con estado `resolved` o `accepted` y limitaciones. Un hallazgo sin resolver ni aceptar no cabe en el contrato: registra el bloqueo en lugar de cerrar la revisión. Ejecuta la aceptación de las correcciones antes de gara-commit y commitea solo con autorización vigente. No marques Done ni publiques por el hecho de revisar.
 
 ## Referencias
 

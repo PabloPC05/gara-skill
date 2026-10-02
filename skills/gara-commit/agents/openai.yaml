@@ -2,3 +2,5 @@ interface:
   display_name: "Gara Commit"
   short_description: "Valida commits atómicos en Gara y Gara Skill"
   default_prompt: "Usa $gara-commit para validar el staging y crear un commit narrativo en Gara o Gara Skill."
+policy:
+  allow_implicit_invocation: false

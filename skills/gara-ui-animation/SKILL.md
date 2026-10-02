@@ -1,6 +1,6 @@
 ---
 name: "gara-ui-animation"
-description: "Diseña y analiza movimiento útil y accesible en la interfaz web de Gara; usar para el comportamiento concreto descrito."
+description: "Diseña, revisa y mide movimiento de la interfaz web de Gara (springs, gestos, transiciones, easing, análisis de grabaciones); usar para crear o evaluar una animación concreta, no para depurar rendimiento."
 ---
 
 # Animación de interfaz Gara
@@ -62,9 +62,9 @@ Canonical home for reverse-engineering motion from a recording: route "reverse e
 
 - Movement: `transform` and `opacity` only; they skip layout and paint.
 - State feedback: `color`, `background-color`, and `opacity` are acceptable.
-- Never animate layout properties (`width`, `height`, `top`, `left`); they trigger layout recalc every frame. (Exception: a deliberate container resize tween, see the card-resize recipe.)
+- Never animate layout properties (`width`, `height`, `top`, `left`); they trigger layout recalc every frame. (Exception: a deliberate container resize tween, see the card-resize recipe, on a small isolated surface with measured performance.)
 - Never use `transition: all`; it animates unintended properties and silently adopts future ones. List them explicitly.
-- Avoid `filter` animation for core interactions; if unavoidable keep blur ≤ 20px (heavy blur is expensive, especially in Safari).
+- Avoid `filter` animation for core interactions; if unavoidable keep blur ≤ 8px (heavy blur is expensive, especially in Safari).
 - SVG: apply transforms on a `<g>` wrapper with `transform-box: fill-box; transform-origin: center`; without it they rotate/scale around the canvas origin.
 - `transform: scale()` also scales children (icons, text, borders scale proportionally), unlike `width`/`height`: a feature for press feedback, but account for it when an inner element must stay fixed-size.
 - Disable transitions during theme switches (`[data-theme-switching] * { transition: none !important }`), or every themed property animates at once.
@@ -131,7 +131,7 @@ Prefer lower-overhead transitions (CSS-only) unless the design requires JS orche
 - Pause looping animations off-screen with `IntersectionObserver`; they burn GPU even when invisible.
 - Toggle `will-change` only during heavy motion and only for `transform`/`opacity`; remove it after. Each promotion costs compositor memory; permanent promotion across many elements is worse than none.
 - Do not animate drag via CSS variables on a container; every update recalculates styles for all children. Set `transform` directly on the moving element.
-- Motion `x`/`y` values are the default for axis movement and drag (they bypass React re-renders). Use a full `transform` string only when one owner must combine multiple transform functions or interop with non-Motion code.
+- When the checkout already depends on Motion, `x`/`y` values are the default for axis movement and drag (they bypass React re-renders); otherwise use CSS transforms or WAAPI and do not add Motion for this. Use a full `transform` string only when one owner must combine multiple transform functions or interop with non-Motion code.
 - See [references/performance-deep-dive.md](references/performance-deep-dive.md) for WAAPI, compositing layers, and the CSS vs JS comparison table.
 
 ## Anti-patterns

@@ -19,7 +19,7 @@ Ejecuta los criterios pertinentes y conserva SHA, comandos y salida real en REVI
 
 Corrige desviaciones del alcance autorizado y valida las rutas afectadas. No edites SPEC, PLAN ni el contrato de aceptación para adaptar la promesa al resultado. Si el requisito exige una decisión nueva o cambiar arquitectura, registra el bloqueo y prepara una versión nueva.
 
-Reconciliar contexto significa actualizar solo documentación y memoria afectadas, manteniendo commits de mediciones no repetidas. Usa gara-commit para las correcciones. Termina listo para revisión, sujeto al proceso humano de Gara; la revisión genérica de corrección corresponde a gara-review.
+Reconciliar contexto significa actualizar solo documentación y memoria afectadas, manteniendo commits de mediciones no repetidas. Registra las correcciones con gara-commit solo cuando el commit esté autorizado por el usuario o por una ejecución `run`. Termina listo para revisión, sujeto al proceso humano de Gara; la revisión genérica de corrección corresponde a gara-review.
 
 ## Referencias
 

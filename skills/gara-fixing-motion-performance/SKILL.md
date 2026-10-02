@@ -1,6 +1,6 @@
 ---
 name: "gara-fixing-motion-performance"
-description: "Diagnostica tirones de movimiento con evidencia en la interfaz web de Gara; usar para el comportamiento concreto descrito."
+description: "Diagnostica con medición tirones, saltos de frames o coste de animaciones existentes en la interfaz web de Gara; usar cuando una animación va a trompicones, no para diseñar movimiento nuevo."
 ---
 
 # Rendimiento de animación Gara

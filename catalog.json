@@ -201,7 +201,7 @@
       "name": "gara-find-skills",
       "title": "Descubrir skills para Gara",
       "short": "Busca capacidades útiles y evita instalaciones duplicadas",
-      "explicit_only": false,
+      "explicit_only": true,
       "execution": "direct",
       "agents": []
     },
@@ -249,7 +249,7 @@
       "name": "gara-commit",
       "title": "Commits Gara y Gara Skill",
       "short": "Valida staging y crea commits atómicos narrativos",
-      "explicit_only": false,
+      "explicit_only": true,
       "execution": "direct",
       "agents": []
     }

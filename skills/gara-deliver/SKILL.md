@@ -17,7 +17,7 @@ Con las herramientas autenticadas disponibles, publica la rama y abre o actualiz
 
 Entrega el issue a In Review y deja evidencia del alcance, comandos, resultados y limitaciones mediante las capacidades de Linear disponibles. Si faltan credenciales o conectores, prepara la descripción y registra el bloqueo; no inventes una actualización externa.
 
-Escribe ENTREGA.md con URL de PR, SHA y estado observado de Linear. La revisión de agentes no permite autoaprobar el trabajo, hacer merge o moverlo a Done; aplica excepciones solo mediante instrucciones explícitas vigentes del propietario. La invocación de esta skill no autoriza un despliegue.
+Escribe únicamente ENTREGA.md con la URL de la PR, el estado observado de Linear (`In Review`) y la línea literal `Implementation SHA: <SHA de review>`; el código, SPEC, PLAN, TAREAS y REVISION están cerrados y cualquier cambio los invalida. Si necesitas un archivo para el cuerpo de la PR, créalo fuera del checkout. La revisión de agentes no permite autoaprobar el trabajo, hacer merge o moverlo a Done; aplica excepciones solo mediante instrucciones explícitas vigentes del propietario. La invocación de esta skill no autoriza un despliegue.
 
 ## Referencias
 

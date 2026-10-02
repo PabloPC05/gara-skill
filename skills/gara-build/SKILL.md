@@ -13,7 +13,7 @@ Coordinación condicional: usa `gara-implementer` para tareas ya especificadas c
 
 Comprueba el [contrato de delegación](references/delegation.md). El implementador no invoca gara-build, gara-workflow ni otro CLI de coordinación. Para una tarea pequeña o sin agentes, implementa en esta sesión siguiendo el orden y los mismos contratos.
 
-Comprueba issue, asignación y rama conforme al proceso de Gara. Lee TAREAS.md y los archivos asignados; consulta solo las secciones del plan necesarias. Un briefing incompleto se registra como hueco, no se convierte silenciosamente en una decisión nueva.
+Comprueba issue, asignación, estado `In Progress` y rama conforme al proceso de Gara; si no puedes acreditarlos, bloquea. Lee TAREAS.md y los archivos asignados; consulta solo las secciones del plan necesarias. Un briefing incompleto se registra como hueco, no se convierte silenciosamente en una decisión nueva.
 
 Ejecuta las tandas programadas. Cuando elijas delegar, pasa cada tarea íntegra a gara-implementer. No lances otro CLI de coordinación dentro de la sesión. Si no hay agentes, ejecuta las tareas en orden y declara la limitación. Evita escritores simultáneos y suites paralelas que compartan recursos.
 

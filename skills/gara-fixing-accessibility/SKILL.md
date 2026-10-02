@@ -1,6 +1,6 @@
 ---
 name: "gara-fixing-accessibility"
-description: "Verifica foco, teclado, contraste y semántica accesible en la interfaz web de Gara; usar para el comportamiento concreto descrito."
+description: "Verifica y corrige foco, orden de teclado, contraste y semántica accesible en pantallas web de Gara; usar al revisar o arreglar un problema de accesibilidad concreto."
 ---
 
 # Accesibilidad Gara
