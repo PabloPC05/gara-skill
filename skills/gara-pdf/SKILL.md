@@ -23,7 +23,7 @@ py scripts/build_pdf.py --content body.html --meta meta.json --out documento.pdf
 
 1. Reúne contenido y metadatos proporcionados. No inventes datos fiscales, institucionales ni cifras; conserva citas y números tal cual.
 2. Consulta [document.md](references/document.md) para el formato del fragmento HTML y los metadatos (`title` obligatorio; el resto opcional).
-3. Si `--out` ya existe, el script lo sobrescribe: pide confirmación antes de reemplazar un PDF previo.
+3. Si `--out` ya existe, el script se niega a reemplazarlo. Pregunta al usuario: si lo confirma, repite con `--overwrite`; si no, usa otro nombre.
 4. Renderiza. `--keep-html` deja un `.html` junto al PDF para diagnosticar; no lo uses con una entrada que se llame igual.
 5. Comprueba el PDF renderizado, no el HTML: todas las páginas, saltos de página, tablas largas, caracteres españoles y texto extraíble. Informa de lo que no pudiste mirar.
 

@@ -14,7 +14,7 @@ Coordinación condicional, bajo el [contrato de delegación](references/delegati
 
 1. Fija audiencia, objetivo, hechos demostrables y libertad visual autorizada. Si falta alguno, pregúntalo; no elijas una afirmación científica o comercial no verificada para mejorar el impacto.
 2. Define direcciones visuales diferentes antes de repartir, para que no converjan a una plantilla. Confirma con el usuario la carpeta de salida; si no la hay, pregúntala antes de escribir.
-3. Cada variante, propia o de un `gara-disenador`, es HTML autocontenido con contenido real y recursos autorizados, en un archivo exclusivo. Al diseñador entrégale audiencia, objetivo, contenido verificado, dirección asignada, tokens/recursos autorizados y su archivo; no compartas archivos de salida entre diseñadores.
-4. Revisa lo devuelto, crea el índice comparativo local y explica diferencias y tradeoffs.
+3. Cada variante usa contenido real y recursos autorizados. Cada `gara-disenador` trabaja en su propio worktree de Git, así que puede modificar cualquier archivo sin pisar a los demás. Al diseñador entrégale audiencia, objetivo, contenido verificado, dirección asignada, tokens/recursos autorizados y qué debe producir (HTML autocontenido o cambios en la interfaz). Los worktrees parten de la rama por defecto: si la variante necesita cambios aún sin commitear, avísalo al usuario antes de lanzar.
+4. Revisa lo devuelto (ruta del worktree, rama y archivos de cada variante), crea el índice comparativo local y explica diferencias y tradeoffs. No integres ninguna variante en el checkout principal: el usuario elige cuál fusionar y cuándo borrar los worktrees.
 
-Termina devolviendo rutas, índice, decisiones visuales y límites (qué no se comprobó), y espera que el usuario elija o pida cambios. No publica, no hace commit ni encadena otras skills.
+Termina devolviendo rutas, worktrees y ramas, índice, decisiones visuales y límites (qué no se comprobó), y espera que el usuario elija o pida cambios. No publica, no hace commit ni encadena otras skills.

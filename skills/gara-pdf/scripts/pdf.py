@@ -164,6 +164,11 @@ def main(argv=None) -> int:
     parser.add_argument("--assets", type=Path, required=True)
     parser.add_argument("--browser")
     parser.add_argument("--keep-html", action="store_true")
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Reemplaza --out (y su .html con --keep-html) si ya existe.",
+    )
     args = parser.parse_args(argv)
     try:
         if args.keep_html and args.out.with_suffix(".html").resolve() == (
@@ -171,6 +176,15 @@ def main(argv=None) -> int:
         ):
             raise PdfError(
                 "--keep-html sobrescribiría el contenido de entrada; cambia --out o --content."
+            )
+        existing = [args.out] + (
+            [args.out.with_suffix(".html")] if args.keep_html else []
+        )
+        existing = [path for path in existing if path.exists()]
+        if existing and not args.overwrite:
+            raise PdfError(
+                f"Ya existe {', '.join(str(p) for p in existing)}; "
+                "repite con --overwrite tras confirmarlo o cambia --out."
             )
         render(
             args.content.read_text(encoding="utf-8"),
