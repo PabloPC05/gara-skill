@@ -1,6 +1,6 @@
 ---
 name: "gara-fixing-motion-performance"
-description: "Diagnostica con medición tirones, saltos de frames o coste de animaciones existentes en la interfaz web de Gara; usar cuando una animación va a trompicones, no para diseñar movimiento nuevo."
+description: "Diagnostica con medición tirones, saltos de frames o coste de animaciones existentes en la interfaz web de Gara; usar cuando una animación va a trompicones, no para diseñar movimiento nuevo (gara-ui-animation)."
 ---
 
 # Rendimiento de animación Gara
@@ -9,143 +9,115 @@ Lee el [perfil Gara](references/gara.md) y aplica las instrucciones del checkout
 
 ## Ejecución
 
-Ejecución directa, sin agentes. Recibe animación, reproducción y stack actual; entrega mediciones, diagnóstico y correcciones acotadas. Si faltan herramientas de medida, registra la hipótesis sin presentarla como mejora medida. No requiere delegación.
+Ejecución directa, sin agentes. Recibe la animación, su reproducción y el stack actual; entrega mediciones, diagnóstico y correcciones acotadas. Si faltan herramientas de medida, registra la hipótesis sin presentarla como mejora medida. Aplica los criterios solo al alcance pedido y al sistema existente: sin dependencias nuevas ni rediseño incidental. Al terminar, devuelve el resultado y espera instrucciones; no encadena otras skills ni hace commit.
 
-Aplica estos criterios al alcance pedido en Gara y a su sistema visual existente. No introduzcas dependencias o un rediseño incidental.
+## Uso
 
-# fixing-motion-performance
+- `/gara-fixing-motion-performance`: aplica estos criterios al trabajo de animación de la conversación.
+- `/gara-fixing-motion-performance <archivo>`: revisa el archivo contra las reglas y para cada hallazgo da el fragmento exacto, por qué importa (una frase) y una corrección concreta.
 
-Fix animation performance issues.
+No migres librerías de animación salvo petición expresa; aplica las reglas dentro del stack existente.
 
-## how to use
+## Cuándo aplicar
 
-- `$gara-fixing-motion-performance` (Codex) or `/gara-fixing-motion-performance` (Claude Code)
-  Apply these constraints to any UI animation work in this conversation.
+- Animaciones nuevas o modificadas (CSS, WAAPI, Motion, rAF, GSAP) que se perciben con tirones.
+- Movimiento ligado al scroll o revelado al hacer scroll.
+- Animación de layout, filtros, máscaras, gradientes o variables CSS.
+- Componentes con `will-change`, transforms o mediciones de layout.
 
-- `$gara-fixing-motion-performance <file>` or `/gara-fixing-motion-performance <file>`
-  Review the file against all rules below and report:
-  - violations (quote the exact line or snippet)
-  - why it matters (one short sentence)
-  - a concrete fix (code-level suggestion)
+## Glosario de pasos de render
 
-Do not migrate animation libraries unless explicitly requested. Apply rules within the existing stack.
+- composición: `transform`, `opacity`
+- pintado: color, bordes, gradientes, máscaras, imágenes, filtros
+- layout: tamaño, posición, flujo, grid, flex
 
-## when to apply
+## Prioridad de las reglas
 
-Reference these guidelines when:
-- adding or changing UI animations (CSS, WAAPI, Motion, rAF, GSAP)
-- refactoring janky interactions or transitions
-- implementing scroll-linked motion or reveal-on-scroll
-- animating layout, filters, masks, gradients, or CSS variables
-- reviewing components that use will-change, transforms, or measurement
+| prioridad | categoría | impacto |
+|-----------|-----------|---------|
+| 1 | patrones prohibidos | crítico |
+| 2 | elegir el mecanismo | crítico |
+| 3 | medición | alto |
+| 4 | scroll | alto |
+| 5 | pintado | medio-alto |
+| 6 | capas | medio |
+| 7 | blur y filtros | medio |
+| 8 | view transitions | bajo |
+| 9 | límites de la herramienta | crítico |
 
-## rendering steps glossary
+### 1. Patrones prohibidos (crítico)
 
-- composite: transform, opacity
-- paint: color, borders, gradients, masks, images, filters
-- layout: size, position, flow, grid, flex
+- No intercales lecturas y escrituras de layout en el mismo frame.
+- No animes layout de forma continua en superficies grandes o relevantes.
+- No dirijas animaciones desde `scrollTop`, `scrollY` ni eventos de scroll.
+- Ningún bucle `requestAnimationFrame` sin condición de parada.
+- No mezcles varios sistemas de animación que midan o muten layout.
 
-## rule categories by priority
+### 2. Elegir el mecanismo (crítico)
 
-| priority | category | impact |
-|----------|----------|--------|
-| 1 | never patterns | critical |
-| 2 | choose the mechanism | critical |
-| 3 | measurement | high |
-| 4 | scroll | high |
-| 5 | paint | medium-high |
-| 6 | layers | medium |
-| 7 | blur and filters | medium |
-| 8 | view transitions | low |
-| 9 | tool boundaries | critical |
+- Por defecto, `transform` y `opacity`.
+- Animación dirigida por JS solo cuando la interacción lo exija.
+- Animar pintado o layout solo en superficies pequeñas y aisladas.
+- Un efecto puntual se tolera más que el movimiento continuo.
+- Antes de quitar el movimiento, prefiere degradar la técnica.
 
-## quick reference
+### 3. Medición (alto)
 
-### 1. never patterns (critical)
+- Mide una vez y anima con `transform` u `opacity`; agrupa todas las lecturas del DOM antes de las escrituras.
+- No leas layout repetidamente durante la animación.
+- Para efectos tipo layout, prefiere FLIP.
 
-- do not interleave layout reads and writes in the same frame
-- do not animate layout continuously on large or meaningful surfaces
-- do not drive animation from scrollTop, scrollY, or scroll events
-- no requestAnimationFrame loops without a stop condition
-- do not mix multiple animation systems that each measure or mutate layout
+### 4. Scroll (alto)
 
-### 2. choose the mechanism (critical)
+- Para movimiento ligado al scroll, prefiere Scroll o View Timelines cuando existan.
+- Usa `IntersectionObserver` para visibilidad y para pausar; no consultes la posición de scroll en bucle.
+- Pausa o detén las animaciones fuera de pantalla.
+- El movimiento ligado al scroll no provoca layout ni pintado continuos en superficies grandes.
 
-- default to transform and opacity for motion
-- use JS-driven animation only when interaction requires it
-- paint or layout animation is acceptable only on small, isolated surfaces
-- one-shot effects are acceptable more often than continuous motion
-- prefer downgrading technique over removing motion entirely
+### 5. Pintado (medio-alto)
 
-### 3. measurement (high)
+- Animación que provoca pintado solo en elementos pequeños y aislados; nunca propiedades costosas de pintado en contenedores grandes.
+- No animes variables CSS que gobiernen transform, opacity o posición, ni variables heredadas; acota las variables animadas localmente.
 
-- measure once, then animate via transform or opacity
-- batch all DOM reads before writes
-- do not read layout repeatedly during an animation
-- prefer FLIP-style transitions for layout-like effects
-- prefer approaches that batch measurement and writes
+### 6. Capas (medio)
 
-### 4. scroll (high)
+- La composición exige promoción de capa; no la des por supuesta.
+- `will-change` temporal y quirúrgico; evita muchas capas o capas grandes.
+- Valida el comportamiento de capas con herramientas cuando el rendimiento importe.
 
-- prefer Scroll or View Timelines for scroll-linked motion when available
-- use IntersectionObserver for visibility and pausing
-- do not poll scroll position for animation
-- pause or stop animations when off-screen
-- scroll-linked motion must not trigger continuous layout or paint on large surfaces
+### 7. Blur y filtros (medio)
 
-### 5. paint (medium-high)
+- Blur pequeño (<= 8px), solo en efectos breves y puntuales; nunca continuo ni en superficies grandes.
+- Prefiere opacity y translate antes que blur.
 
-- paint-triggering animation is allowed only on small, isolated elements
-- do not animate paint-heavy properties on large containers
-- do not animate CSS variables for transform, opacity, or position
-- do not animate inherited CSS variables
-- scope animated CSS variables locally and avoid inheritance
+### 8. View transitions (bajo)
 
-### 6. layers (medium)
+- Solo para cambios de navegación; evítalas en UI de interacción intensa o cuando se necesite interrupción o cancelación.
+- Un cambio de tamaño puede desencadenar layout.
+- Para implementarlas o corregir su comportamiento, la skill adecuada es gara-view-transitions.
 
-- compositor motion requires layer promotion, never assume it
-- use will-change temporarily and surgically
-- avoid many or large promoted layers
-- validate layer behavior with tooling when performance matters
+### 9. Límites de la herramienta (crítico)
 
-### 7. blur and filters (medium)
+- No migres ni reescribas librerías de animación sin petición expresa; aplica estas reglas dentro del sistema existente.
+- Nunca migres una API a medias ni mezcles estilos dentro de un mismo componente.
 
-- keep blur animation small (<=8px)
-- use blur only for short, one-time effects
-- never animate blur continuously
-- never animate blur on large surfaces
-- prefer opacity and translate before blur
-
-### 8. view transitions (low)
-
-- use view transitions only for navigation-level changes
-- avoid view transitions for interaction-heavy UI
-- avoid view transitions when interruption or cancellation is required
-- treat size changes as potentially layout-triggering
-
-### 9. tool boundaries (critical)
-
-- do not migrate or rewrite animation libraries unless explicitly requested
-- apply these rules within the existing animation system
-- never partially migrate APIs or mix styles within the same component
-
-## common fixes
+## Correcciones habituales
 
 ```css
-/* layout thrashing: animate transform instead of width */
-/* before */ .panel { transition: width 0.3s; }
-/* after */  .panel { transition: transform 0.3s; }
+/* thrash de layout: anima transform en lugar de width */
+/* antes */   .panel { transition: width 0.3s; }
+/* después */ .panel { transition: transform 0.3s; }
 
-/* scroll-linked: use scroll-timeline instead of JS */
-/* before */ window.addEventListener('scroll', () => el.style.opacity = scrollY / 500)
-/* after */  .reveal { animation: fade-in linear; animation-timeline: view(); }
+/* ligado al scroll: usa scroll-timeline en lugar de JS */
+/* antes */   window.addEventListener('scroll', () => el.style.opacity = scrollY / 500)
+/* después */ .reveal { animation: fade-in linear; animation-timeline: view(); }
 ```
 
 ```js
-// measurement: batch reads before writes (FLIP)
-// before — layout thrash
+// medición: agrupa lecturas antes de escrituras (FLIP)
+// antes: thrash de layout
 el.style.left = el.getBoundingClientRect().left + 10 + 'px';
-// after — measure once, animate via transform
+// después: mide una vez y anima con transform
 const first = el.getBoundingClientRect();
 el.classList.add('moved');
 const last = el.getBoundingClientRect();
@@ -153,9 +125,6 @@ el.style.transform = `translateX(${first.left - last.left}px)`;
 requestAnimationFrame(() => { el.style.transition = 'transform 0.3s'; el.style.transform = ''; });
 ```
 
-## review guidance
+## Orden de trabajo
 
-- enforce critical rules first (never patterns, tool boundaries)
-- choose the least expensive rendering work that matches the intent
-- for any non-default choice, state the constraint that justifies it (surface size, duration, or interaction requirement)
-- when reviewing, prefer actionable notes and concrete alternatives over theory
+Aplica primero las reglas críticas. Elige el trabajo de render más barato que cumpla la intención. Para toda decisión no habitual, indica la restricción que la justifica (tamaño de superficie, duración o necesidad de interacción). Prefiere notas accionables y alternativas concretas a la teoría; una mejora solo es "medida" si hay medición (DevTools Performance, capas, frames).

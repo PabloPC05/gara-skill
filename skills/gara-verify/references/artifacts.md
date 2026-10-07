@@ -1,104 +1,74 @@
-# Contrato de artefactos v1
+# Contrato de artefactos
 
-Todos los archivos de una feature viven en `specs/<slug>/`. El slug usa minúsculas, números y guiones. El índice humano de specs puede enlazarlos; Linear conserva su propio estado.
+Todos los archivos de una feature viven en `specs/<slug>/` del checkout de Gara. El slug usa minúsculas, números y guiones. Son Markdown legible por personas; no hay bloques JSON ni parsers: la comprobación es humana. `## Bloqueado` al inicio de línea en cualquier artefacto indica decisiones pendientes y detiene las fases que dependen de él. Esa sección lista cada bloqueo con qué falta, quién debe decidirlo y qué trabajo depende; se elimina solo cuando el usuario resuelve la decisión.
 
 ## SPEC.md
-
-Frontmatter mínimo:
 
 ```yaml
 ---
 issue: GAR-123
-approved: true
+approved: false
 ---
 ```
 
-`approved: true` registra una autorización real del usuario para esa versión concreta; no se infiere de silencio, timeout o de una petición de análisis. Si ya autorizó implementar los requisitos presentados, conserva esa autorización sin volver a pedirla.
+`approved: true` registra una autorización real del usuario para esa versión concreta; no se infiere de silencio ni de una petición de análisis. Si el usuario ya autorizó implementar los requisitos presentados, conserva esa autorización sin pedirla de nuevo.
 
-Cada requisito utiliza un encabezado `### R1 — Resultado observable`. Incluye escenarios normales, fallos y criterios de aceptación. Registra alcance, exclusiones y decisiones materiales. `## Bloqueado` indica que faltan decisiones y detiene el flujo automático; también lo aplican PLAN.md y TAREAS.md (un encabezado `## Bloqueado` al inicio de línea).
+Cada requisito usa un encabezado `### R1 — Resultado observable` con escenarios normales, de fallo y criterios de aceptación. Registra alcance, exclusiones y decisiones materiales.
 
 ## PLAN.md
 
-Describe módulos, contratos literales, errores, integración, restricciones y traducción de aceptación a comandos. No contiene tareas ni estados. Se escribe justo antes de construir y queda estable durante la ejecución. Si cambian requisitos o arquitectura, prepara una versión nueva y un flujo nuevo; no reescribas el diseño histórico para ocultar lo ocurrido.
+Módulos, contratos literales, errores, integración, restricciones y traducción de cada aceptación a un comando o prueba real. No contiene tareas ni estados. Se escribe justo antes de construir y queda estable; si cambian requisitos o arquitectura, prepara una versión nueva.
 
 ## TAREAS.md
 
-Es Markdown legible con un bloque JSON identificado por `<!-- gara-tasks:v1 -->`. El bloque es la fuente de verdad sobre tareas y horario; evita tablas paralelas con estados contradictorios.
+Una sección por tarea, en el orden de ejecución, con esta plantilla:
 
-<!-- example only -->
 ````markdown
-# Tareas
+# Tareas — GAR-123
 
-<!-- gara-tasks:v1 -->
-```json
-{
-  "version": 1,
-  "issue": "GAR-123",
-  "tasks": [
-    {
-      "id": "T1",
-      "requirements": ["R1"],
-      "depends_on": [],
-      "files": ["python/gara/domain/example.py", "python/tests/domain/test_example.py"],
-      "briefing": "Contrato y comportamiento concreto, con entradas, salidas y casos límite.",
-      "acceptance": [
-        {"cwd": "python", "argv": ["python", "-m", "pytest", "tests/domain/test_example.py", "-q"], "timeout": 600}
-      ],
-      "status": "pending",
-      "weight": 1,
-      "checkpoint": false
-    }
-  ],
-  "batches": [["T1"]]
-}
-```
+## Tanda 1
+
+### T1 — Título corto
+- Estado: pendiente        <!-- pendiente | en curso | bloqueada | verificada -->
+- Requisitos: R1
+- Depende de: —
+- Archivos propios: `python/gara/domain/example.py`, `python/tests/domain/test_example.py`
+- Punto de revisión: no    <!-- sí = parar tras la tanda para una comprobación humana concreta -->
+- Briefing: contrato y comportamiento concreto, con entradas, salidas y casos límite.
+- Aceptación:
+  1. `cd python && python -m pytest tests/domain/test_example.py -q`
+- Evidencia: _(la rellena gara-build con comando, código de salida y resumen real)_
 ````
 
-Los nombres del ejemplo ilustran el formato: el plan debe identificar rutas y pruebas reales del checkout. `argv` es una lista de argumentos, no una cadena de shell. Usa rutas relativas con `/`; no asignes directorios, glob patterns, rutas absolutas, `.git` (incluidas variantes de Windows como `.git.` o `GIT~1`), `.claude/`, `.codex/`, `.husky/` ni archivos `.env`. La aceptación debe poder fallar: se rechazan `true`, `python -c pass` y equivalentes, y `timeout` va de 1 a 3600 segundos.
-
-- IDs únicos; cada requisito debe estar cubierto por alguna tarea y su aceptación.
-- Dependencias programadas en tandas anteriores; no hay dependencia dentro de una tanda.
-- Hasta tres tareas por tanda, sin colisiones de archivos; carga total máxima 4. Pesos: 1 ligera, 2 pesada, 4 exclusiva. Si una aceptación arranca la aplicación o usa recursos compartidos, programa esa tarea de manera conservadora.
-- Los contratos y pruebas que permiten dividir el trabajo van primero. Prioriza el riesgo entre tareas con las mismas dependencias.
-- Estados: `pending`, `running`, `blocked`, `verified`. Un contrato nuevo entrega todas las tareas en `pending`; el ejecutor escribe estados y `evidence` después de ejecutar la aceptación. El implementador no inventa resultados ni cambia pruebas para declararlas verdes.
-- `checkpoint: true` pausa después de la tanda para una comprobación humana; `resume --ack-checkpoint` registra que se revisó. Además, el ejecutor pausa siempre tras escribir `TAREAS.md` para que una persona revise los comandos de aceptación antes de lanzarlos.
-
-El briefing debe bastar para construir sin inventar decisiones materiales. La lectura de documentación adicional necesaria es explícita. Si faltan datos, registra el hueco y bloquea lo dependiente.
+- IDs únicos; cada requisito queda cubierto por alguna tarea y su aceptación.
+- Una tarea nueva empieza en `pendiente`; si su aceptación falla, queda `en curso` con la evidencia del fallo, y pasa a `bloqueada` si depende de una decisión o permiso ajeno. Solo `gara-build` cambia estados, y solo tras ejecutar la aceptación y ver su resultado; el implementador no inventa resultados ni cambia pruebas para ponerlas en verde.
+- Las dependencias están en tandas anteriores. Las tareas de una misma tanda no comparten archivos propios.
+- Los contratos y pruebas que permiten dividir el trabajo van primero.
+- La aceptación debe poder fallar: no uses `true`, `python -c pass` ni equivalentes. Usa rutas relativas con `/`, directorio de trabajo explícito y ninguna ruta de `.git`, `.claude/`, `.codex/`, `.husky/` ni `.env*`.
+- El briefing basta para construir sin inventar decisiones materiales; la documentación adicional necesaria se cita de forma explícita. Si faltan datos, registra el hueco y bloquea lo dependiente.
 
 ## REVISION.md
 
-Contiene un único bloque `<!-- gara-review:v1 -->` seguido de JSON. `verify` escribe `verification`; `review` conserva ese registro exactamente y añade `review` con los mismos campos. Ejemplo de verificación:
+Dos secciones independientes. `gara-verify` escribe *Verificación*; `gara-review` la conserva intacta y añade *Revisión*.
 
 ````markdown
-<!-- gara-review:v1 -->
-```json
-{
-  "version": 1,
-  "issue": "GAR-123",
-  "verification": {
-    "implementation_sha": "<SHA completo real de la implementación>",
-    "author": {"name": "Autor real", "role": "gara-verifier"},
-    "requirements": [
-      {"id": "R1", "result": "passed", "evidence": "Escenario y archivo o salida observada"}
-    ],
-    "checks": [
-      {"task": "T1", "gate": 1, "returncode": 0, "summary": "Comando y resultado real"}
-    ],
-    "findings": [],
-    "limitations": ["Revisión humana pendiente; límites concretos del entorno"]
-  }
-}
-```
+# Revisión — GAR-123
+
+## Verificación
+- SHA verificado: `<SHA completo real>`
+- Autor: nombre y rol reales (`gara-verifier`, sesión principal, persona…)
+- Requisitos:
+  - R1 — cumplido: escenario y archivo o salida observada
+- Aceptaciones: T1.1 `comando` → código 0, resumen real
+- Hallazgos: ninguno | lista con severidad (`low`, `medium`, `high`, `critical`), estado (`resuelto`, `aceptado`), resumen y evidencia
+- Limitaciones: qué no se pudo comprobar (revisión humana pendiente, entorno…)
+
+## Revisión
+(mismos campos, sobre el SHA revisado)
 ````
 
-El SHA identifica un commit existente y ancestro de HEAD con los mismos archivos de implementación. Un commit posterior que solo registre el informe conserva ese SHA. Sustituye el placeholder del ejemplo por el SHA observado.
-
-Cada registro cubre todos los requisitos una vez y cada aceptación mediante `task` y `gate` (índice desde 1). Las aceptaciones también deben constar como satisfactorias en la evidencia que ejecutó el coordinador. `author.session_id` es opcional; registra la sesión real si se conoce. La autoría declarada no acredita independencia: el estado privado conserva sesión principal, delegaciones observadas y `independence: unverified`. Un entorno sin subagentes o revisión humana se declara.
-
-`findings` admite objetos con `severity` (`low`, `medium`, `high`, `critical`), `status` (`resolved`, `accepted`), `summary` y `evidence`. Documenta la corrección o la aceptación explícita del riesgo. Las limitaciones son una lista no vacía. Si review corrige código, registra el cambio y vuelve a verificar y revisar la implementación nueva; una segunda corrección durante ese repaso bloquea el cierre.
+El SHA identifica un commit existente, ancestro de HEAD, con los mismos archivos de implementación. Cada requisito y cada aceptación aparecen una vez. La autoría declarada no acredita independencia: si el verificador fue la misma sesión que implementó, o no hubo subagentes, dilo en *Limitaciones*. Un hallazgo sin resolver ni aceptar impide cerrar la revisión: regístralo como bloqueo. Si la revisión corrige código, indica el cambio y repite verify y review sobre el SHA nuevo.
 
 ## ENTREGA.md
 
-Existe solo tras publicación explícita. Incluye URL de PR, estado observado de Linear y `Implementation SHA: <SHA de review>`. Si incluye `SHA: <HEAD>`, debe corresponder al HEAD observado; puede ser un commit documental posterior.
-
-Publish solo puede escribir `ENTREGA.md`. El código, los contratos y `REVISION.md` permanecen congelados; se comprueban archivos, cambios ignorados y commits nuevos, incluso si un cambio se revierte antes de terminar. Un cambio prohibido invalida verify, review y publish. Una ejecución local completa acredita validación local; la aprobación humana y el despliegue requieren sus propios pasos.
+Existe solo tras una orden explícita de publicar. Incluye URL de la PR, estado observado de Linear (`In Review`) y `Implementation SHA: <SHA de la revisión>`. Una vez escrito, el código, la SPEC, el PLAN, `TAREAS.md` y `REVISION.md` están cerrados: cualquier cambio posterior invalida la verificación y la revisión. La entrega acredita validación local; la aprobación humana y el despliegue son pasos aparte.

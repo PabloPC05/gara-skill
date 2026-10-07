@@ -1,14 +1,14 @@
 # Ejecución y delegación Gara
 
-`direct` ejecuta la skill en la sesión actual. `coordinated` permite delegar bajo las condiciones indicadas; no obliga a lanzar agentes. La selección y el lanzamiento pertenecen al coordinador. Las skills pequeñas conservan ejecución directa.
+`direct` ejecuta la skill en la sesión actual. `coordinated` permite delegar bajo las condiciones indicadas; no obliga a lanzar agentes. El *coordinador* es la sesión principal que dirige el usuario: selecciona y lanza los agentes. **Delegar necesita autorización del usuario**: si la skill no la trae ya (porque el usuario pidió explícitamente usar agentes), propón qué agente lanzarías y para qué antes de hacerlo. Los agentes `gara-*` no tienen `disable-model-invocation`, así que Claude podría ofrecerlos por su descripción; no los uses sin esa autorización. Las skills pequeñas conservan ejecución directa.
 
 ## Comprobar capacidades
 
-Antes de delegar, comprueba autorización vigente, disponibilidad del agente exacto, lectura de las rutas del briefing, escritura dentro de su ownership y herramientas necesarias. Para investigación comprueba acceso a las fuentes; para revisión visual, un navegador real y la URL del entorno autorizado. La presencia de un nombre en el catálogo no acredita estas capacidades. Adapta las tandas a los límites del cliente y evita escritores o suites que compartan recursos.
+Antes de delegar, comprueba autorización vigente, disponibilidad del agente exacto, lectura de las rutas del briefing, escritura dentro de su ownership y herramientas necesarias. Para investigación comprueba acceso a las fuentes; para revisión visual, un navegador real y la URL del entorno autorizado. Que un agente exista en `agents/` no acredita estas capacidades. Adapta las tandas a los límites del cliente y evita escritores o suites que compartan recursos.
 
-En Claude, `claude_tools` limita herramientas. `Skill` permite usar una skill especializada disponible; su ausencia exige pasar las instrucciones pertinentes en el briefing. `claude_tools: null` omite `tools` y conserva el conjunto heredado; se usa en `gara-revisor-visual` para no excluir el navegador MCP ya disponible y autorizado. `claude_disallowed_tools: Agent` impide delegación anidada. Estas declaraciones no conceden permisos, habilitan servidores MCP ni garantizan herramientas que el cliente no ofrece. Los modelos y permisos siguen heredados.
+En el frontmatter de cada agente, `tools` limita herramientas. `Skill` permite usar una skill especializada disponible; su ausencia exige pasar las instrucciones pertinentes en el briefing. Sin `tools` se conserva el conjunto heredado; es el caso de `gara-revisor-visual`, para no excluir el navegador MCP ya disponible y autorizado. `disallowedTools: Agent` impide delegación anidada. Estas declaraciones no conceden permisos, habilitan servidores MCP ni garantizan herramientas que el cliente no ofrece. Los modelos y permisos siguen heredados.
 
-No precargues fases con `disable-model-invocation: true` ni cambies su política explícita. El coordinador transmite el contrato de la fase ya seleccionada y las rutas o instrucciones especializadas necesarias. Un trabajador no invoca la fase que lo lanzó ni `gara-workflow`; `gara-implementer` no invoca `gara-build`. No lances otro CLI para suplir la delegación.
+No precargues fases con `disable-model-invocation: true` ni cambies su política explícita. El coordinador transmite el contrato de la fase ya seleccionada y las rutas o instrucciones especializadas necesarias. Un trabajador no invoca la fase que lo lanzó ni `gara-workflow`, y las fases no se invocan entre sí; `gara-implementer` no invoca `gara-build`. No lances otro CLI para suplir la delegación.
 
 Si falta delegación, ejecuta el mismo alcance secuencialmente y declara la limitación. Si falta una capacidad necesaria para la aceptación, registra qué no se comprobó; una revisión de código o una captura previa no sustituye navegación o ejecución real. No amplíes permisos ni configuración global para resolverlo.
 
@@ -30,11 +30,9 @@ Un trabajador devuelve rutas o ubicaciones, hallazgos y evidencia, comandos ejec
 | `gara-build` | coordinated | `gara-implementer`: tareas completas con ownership y aceptación |
 | `gara-verify` | coordinated | `gara-verifier` en `conformidad`; `gara-revisor-visual` para UI con navegador disponible |
 | `gara-review` | coordinated | `gara-verifier` en `correccion`, con contexto fresco |
-| `gara-workflow` | direct | Opera el ejecutor; las fases seleccionadas deciden su delegación |
+| `gara-workflow` | direct | Sin agentes; guía manual del orden de fases y puntos de control |
 | `gara-deliver` | direct | Sin agentes; entrega autorizada mediante capacidades autenticadas |
 | `gara-diseno` | direct | Sin agentes; documenta el sistema visual observado |
-| `gara-workflow-setup` | direct | Sin agentes; prepara el checkout autorizado |
-| `gara-workflow-health` | direct | Sin agentes; mide y analiza evidencia del flujo |
 | `gara-retro` | direct | Sin agentes; propone mejoras sustentadas |
 | `gara-investigar` | coordinated | `gara-investigador`: síntesis de ámbito; `gara-rastreador`: fuentes por ángulo; `gara-contrastador`: informe y fichas en contexto fresco |
 | `gara-convocatoria` | coordinated | `gara-evaluador`: candidatas o memoria contra bases, elegibilidad y rúbrica |
@@ -54,6 +52,6 @@ Un trabajador devuelve rutas o ubicaciones, hallazgos y evidencia, comandos ejec
 | `gara-ui-animation` | direct | Sin agentes; movimiento o medición y validación |
 | `gara-commit` | direct | Sin agentes; staging validado y commit autorizado |
 
-Las listas del catálogo identifican los agentes seleccionables por cada skill; la coordinación sigue siendo condicional. Cuando una fase necesita otra skill explícita, conserva su autorización y selección vigente. En particular, la investigación de una convocatoria aplica el método de `gara-investigar` ya seleccionado o lo realiza directamente; el evaluador no coordina investigadores.
+Esta matriz identifica los agentes seleccionables por cada skill; la coordinación sigue siendo condicional. Cuando una fase necesita otra skill explícita, conserva su autorización y selección vigente. En particular, la investigación de una convocatoria aplica el método de `gara-investigar` ya seleccionado o lo realiza directamente; el evaluador no coordina investigadores.
 
 La semántica de herramientas y skills está documentada en [subagentes Claude](https://code.claude.com/docs/en/sub-agents) y [skills Claude](https://code.claude.com/docs/en/skills).

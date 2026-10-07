@@ -1,27 +1,28 @@
 ---
 name: "gara-spec"
-description: "Define y documenta requisitos de una feature o incidente de Gara mediante una entrevista basada en hechos; usar antes de decidir la implementación."
+description: "Define y documenta requisitos de una feature o incidente de Gara mediante una entrevista basada en hechos; usar al inicio de un trabajo nuevo, antes de decidir la implementación, o cuando el usuario pida escribir o revisar SPEC.md."
+disable-model-invocation: true
 ---
 
 # Especificación Gara
 
-Lee el [perfil Gara](references/gara.md) y aplica las instrucciones del checkout objetivo.
+Lee el [perfil Gara](references/gara.md), el [flujo manual](references/flujo.md) y aplica las instrucciones del checkout objetivo. Solo escribe `specs/<slug>/SPEC.md`.
 
-## Ejecución
+## Pasos
 
-Coordinación condicional: usa `gara-scout` cuando hay preguntas de código acotadas cuya exploración conviene separar. Entrega preguntas completas, checkout/HEAD, evidencias iniciales y rutas de interés; el scout solo lee y devuelve rutas, símbolos, hechos y límites. El coordinador entrevista y escribe `SPEC.md`.
+1. Explora el checkout y las evidencias antes de preguntar. Si hay preguntas de código acotadas cuya exploración compense separar, delega en `gara-scout` según el [contrato de delegación](references/delegation.md); sin agentes, explora tú y deja lo no localizado como incertidumbre.
+2. Entrevista sobre resultados de producto, fallos, recuperación y exclusiones; las decisiones técnicas son de `gara-plan`. Agrupa de una a tres decisiones independientes por ronda, con opciones y consecuencias. Resuelve los hechos con herramientas; para detalles reversibles dentro del alcance, decide con criterio.
+3. Escribe una SPEC autocontenida según el [contrato de artefactos](references/artifacts.md): issue real, requisitos `R1…`, escenarios y alcance. Distingue observaciones de hipótesis y no infieras una causa remota de un síntoma. Para interfaz, parte del sistema visual vigente y pregunta solo decisiones nuevas.
+4. Deja `approved: false`. Solo pasa a `true` si el usuario autoriza esta versión de forma explícita (incluida una autorización ya dada en la conversación). Registra las decisiones materiales pendientes con `## Bloqueado`.
 
-Comprueba el [contrato de delegación](references/delegation.md) antes del encargo. Sin agentes, realiza la exploración en esta sesión y conserva el mismo alcance; una búsqueda incompleta queda como incertidumbre.
+Para cambios pequeños, usa una SPEC proporcional; no impongas una entrevista extensa.
 
-Explora el checkout y las evidencias antes de preguntar. Entrevista sobre resultados de producto, fallos, recuperación y exclusiones; las decisiones técnicas corresponden a gara-plan. Agrupa de una a tres decisiones independientes por ronda, con opciones y consecuencias. Resuelve hechos mediante herramientas y usa criterio para detalles reversibles dentro del alcance.
+## Parada
 
-Escribe una SPEC autocontenida en `specs/<slug>/SPEC.md`, con issue real, requisitos R1, R2 y escenarios de aceptación. Distingue observaciones de hipótesis y no infieras una causa remota de un síntoma. Para interfaz, usa el sistema visual vigente; si no existe documentación suficiente, deriva lo comprobable del código y pregunta únicamente decisiones nuevas.
-
-Registra las decisiones materiales pendientes como bloqueos. `approved: true` solo refleja una autorización real para esa versión, incluida una autorización ya dada en la conversación. La ausencia de respuesta no aprueba. Una petición de investigar o planificar conserva ese alcance.
-
-Para cambios pequeños, usa una especificación proporcional; no impongas una entrevista extensa. Consulta el contrato de artefactos antes de preparar una ejecución automática.
+Termina aquí; no planifiques ni pases de fase. Devuelve: resumen de la SPEC, archivo escrito, decisiones pendientes (`## Bloqueado`, estado de `approved`) y siguiente fase sugerida: `/gara-plan` cuando el usuario apruebe.
 
 ## Referencias
 
 - [artifacts.md](references/artifacts.md)
-- [runtime.md](references/runtime.md)
+- [delegation.md](references/delegation.md)
+- [flujo.md](references/flujo.md)

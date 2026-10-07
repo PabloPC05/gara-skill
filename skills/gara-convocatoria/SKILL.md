@@ -1,18 +1,27 @@
 ---
 name: "gara-convocatoria"
-description: "Analiza una convocatoria de financiación o ayuda para Gara y prepara una propuesta trazable a sus requisitos y criterios de evaluación."
+description: "Usar cuando el usuario pida analizar una convocatoria de financiación o ayuda para Gara, evaluar candidatas o redactar una memoria contra sus bases y rúbrica. Prepara documentos; no presenta ni envía solicitudes. Para investigación general usa gara-investigar."
+disable-model-invocation: true
 ---
 
 # Convocatorias Gara
 
-Lee el [perfil Gara](references/gara.md) y aplica las instrucciones del checkout objetivo.
+Lee el [perfil Gara](references/gara.md) y aplica las instrucciones del checkout objetivo. Sigue el [contrato de fases y entregables](references/phases.md); si vas a delegar, el [contrato de delegación](references/delegation.md).
 
 ## Ejecución
 
-Coordinación condicional: selecciona `gara-evaluador` en contexto fresco cuando comparar candidatas o revisar la memoria contra varios criterios compense una evaluación separada. Entrega bases oficiales y versión/fecha, elegibilidad, rúbrica con pesos, IDEAS o MEMORIA y evidencias de capacidades reales; no le des una clasificación esperada. Devuelve descartes duros, puntuación por criterio, evidencia, mejoras y datos ausentes, sin editar ni enviar solicitudes.
+Coordinada y condicional: con autorización del usuario, `gara-evaluador` puede puntuar candidatas o la memoria en contexto fresco cuando compense separar la evaluación. Recibe bases oficiales con versión/fecha, elegibilidad, rúbrica con pesos, IDEAS o MEMORIA y evidencias de capacidades reales, sin una clasificación esperada. Sin agentes, evalúa tú contra la misma rúbrica y declara que faltó contexto independiente.
 
-El coordinador conserva `EVALUACION.md` y prepara la memoria. Comprueba el [contrato de delegación](references/delegation.md). Sin agentes, evalúa directamente contra la misma rúbrica y declara que faltó contexto independiente; sin un dato de elegibilidad o criterio necesario, registra el bloqueo.
+El coordinador lee personalmente las bases completas, escribe `EVALUACION.md` y prepara la memoria. El evaluador no edita ni coordina investigadores.
 
-Lee bases oficiales completas, elegibilidad, plazo, presupuesto permitido y rúbrica con pesos. Investiga ediciones anteriores con fuentes identificadas. Formula candidatas distintas, ligadas a capacidades reales de Gara; no inventes resultados científicos, personalidad jurídica, datos fiscales, socios o compromiso institucional. La evaluación directa o de gara-evaluador puntúa criterio a criterio; un incumplimiento duro descarta, no se disimula como nota baja. Redacta la memoria contra la rúbrica y usa gara-pdf si se pide PDF. Preparar no equivale a presentar ni enviar la solicitud.
+## Reglas
 
-Lee el [contrato de fases y entregables](references/phases.md). Reanuda desde BASES, INFORME, IDEAS, EVALUACION y MEMORIA existentes, sin repetir fases ni sustituir las bases por resúmenes.
+- Los datos de elegibilidad, cofinanciación, personalidad jurídica, socios, fiscalidad y resultados salen de las bases o de evidencia aportada; si falta uno decisivo, registra el bloqueo y pregunta. No inventes nada de eso.
+- Un incumplimiento duro descarta la candidata; no se disimula como nota baja.
+- La investigación de contexto usa el método de `gara-investigar` (fuentes primarias y fichas) aplicado directamente, o ya lanzado por el usuario.
+- Si piden PDF, el usuario lo genera después con `gara-pdf`, salvo que la convocatoria obligue a otra plantilla.
+- Presentar la solicitud, firmar, contactar con el organismo o comprometer a terceros solo se hace si el usuario lo ordena expresamente.
+
+## Parada
+
+Una fase por invocación. Reanuda desde los archivos existentes sin repetir fases ni sustituir las bases por resúmenes. Al terminar la fase devuelve artefacto, bloqueos, decisiones pendientes y fase siguiente posible, y espera al usuario.

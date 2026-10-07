@@ -1,6 +1,7 @@
 ---
 name: gara-commit
 description: Validar y ejecutar commits Git atómicos y narrativos en Gara o Gara Skill; usar cuando se solicite crear o preparar un commit, revisar el staging o sustituir git commit en uno de esos checkouts.
+disable-model-invocation: true
 ---
 
 # Gara Commit

@@ -1,25 +1,28 @@
 ---
 name: "gara-tasks"
-description: "Transforma PLAN.md y SPEC.md de Gara en un contrato TAREAS.md ejecutable, con cobertura de requisitos, dependencias y tandas."
+description: "Convierte SPEC.md y PLAN.md aprobados de Gara en TAREAS.md, con cobertura de requisitos, dependencias, tandas y comandos de aceptación; usar tras aceptar el plan y antes de construir."
+disable-model-invocation: true
 ---
 
 # Tareas Gara
 
-Lee el [perfil Gara](references/gara.md) y aplica las instrucciones del checkout objetivo.
+Lee el [perfil Gara](references/gara.md), el [flujo manual](references/flujo.md) y aplica las instrucciones del checkout objetivo. Ejecución directa, sin agentes. Solo escribe `specs/<slug>/TAREAS.md`.
 
-## Ejecución
+## Pasos
 
-Ejecución directa, sin agentes. Recibe SPEC, PLAN, rutas reales y capacidades del entorno; entrega `TAREAS.md` con briefings completos, ownership, dependencias y aceptación. Esta skill programa el trabajo: no lanza implementadores. El mismo contrato permite a gara-build trabajar secuencialmente cuando no haya delegación.
+1. Comprueba que existen SPEC aprobada y PLAN sin `## Bloqueado`. Si no, para y dilo.
+2. Lee el plan completo y escribe `TAREAS.md` con la plantilla Markdown del [contrato de artefactos](references/artifacts.md). Todas las tareas empiezan en `pendiente` y con `Evidencia` vacía.
+3. Cada briefing copia los contratos literales que necesita quien construya, sin inventar arquitectura ni modificar el plan. Cada requisito de la SPEC queda cubierto por una aceptación ejecutable.
+4. Ordena por dependencias: contratos y pruebas de interfaz antes que sus consumidores. En una misma tanda, hasta tres tareas y ningún archivo propio compartido; prioriza el riesgo entre tareas independientes.
+5. Cada aceptación es un comando real que puede fallar, con directorio de trabajo explícito y rutas relativas con `/` (reglas completas en el contrato). Estos comandos los ejecutará `gara-build` en la máquina del usuario: no deben tocar nada fuera del alcance.
+6. Marca `Punto de revisión: sí` donde haga falta una comprobación humana concreta; una revisión visual cierra el bloque de frontend cuando la pantalla completa ya existe.
+7. Si el plan omite una decisión necesaria, documenta el hueco y bloquea lo dependiente con `## Bloqueado`.
 
-Lee el plan completo y copia en cada briefing los contratos que necesita su implementador. Cada tarea declara ID, requisitos, dependencias, archivos concretos, resultados, aceptación y estado. No inventes arquitectura ni modifiques el plan.
+## Parada
 
-Escribe el bloque gara-tasks:v1 del contrato de artefactos. Todas las R de la SPEC quedan cubiertas por aceptación ejecutable. Usa rutas reales, argv sin shell y directorios de trabajo explícitos. No sustituyas una comprobación de comportamiento por un comando que siempre sale con éxito.
-
-Programa contratos y pruebas de interfaz entre módulos antes que sus consumidores. Ordena por dependencias, colisiones y recursos; prioriza riesgo en tareas independientes. Cada tanda tiene hasta tres tareas, carga máxima 4 y ningún escritor sobre los mismos archivos. Adapta el paralelismo a las capacidades y límites del entorno; un entorno sin subagentes trabaja secuencialmente.
-
-Si el plan omite una decisión necesaria, documenta el hueco y bloquea lo dependiente. Los checkpoints señalan una comprobación humana concreta. Una revisión visual cierra el bloque de frontend cuando la pantalla completa ya existe.
+Termina aquí; no construyas nada. Devuelve: resumen de tandas y cobertura de requisitos, archivo escrito, los comandos de aceptación para que el usuario los lea, decisiones pendientes y siguiente fase sugerida: `/gara-build` tras su visto bueno a `TAREAS.md`.
 
 ## Referencias
 
 - [artifacts.md](references/artifacts.md)
-- [runtime.md](references/runtime.md)
+- [flujo.md](references/flujo.md)

@@ -1,6 +1,6 @@
 ---
 name: "gara-fixing-accessibility"
-description: "Verifica y corrige foco, orden de teclado, contraste y semántica accesible en pantallas web de Gara; usar al revisar o arreglar un problema de accesibilidad concreto."
+description: "Verifica y corrige foco, orden de teclado, contraste y semántica accesible en pantallas web de Gara; usar al revisar o arreglar un problema de accesibilidad concreto, no para un pulido visual general (gara-baseline-ui)."
 ---
 
 # Accesibilidad Gara
@@ -9,138 +9,106 @@ Lee el [perfil Gara](references/gara.md) y aplica las instrucciones del checkout
 
 ## Ejecución
 
-Ejecución directa, sin agentes. Recibe controles/flujos y reproducción; entrega hallazgos o correcciones de semántica, foco, teclado y contraste con evidencia. Si falta navegador o tecnología asistiva, declara qué comprobaciones no se realizaron. No requiere delegación.
+Ejecución directa, sin agentes. Recibe controles o flujos y su reproducción; entrega hallazgos o correcciones de semántica, foco, teclado y contraste con evidencia. Si falta navegador o tecnología asistiva, declara qué no se comprobó. Aplica los criterios solo al alcance pedido y al sistema visual existente: sin dependencias nuevas ni rediseño incidental. Al terminar, devuelve el resultado y espera instrucciones; no encadena otras skills ni hace commit.
 
-Aplica estos criterios al alcance pedido en Gara y a su sistema visual existente. No introduzcas dependencias o un rediseño incidental.
+## Uso
 
-# fixing-accessibility
+- `/gara-fixing-accessibility`: aplica estos criterios al trabajo de UI de la conversación.
+- `/gara-fixing-accessibility <archivo>`: revisa el archivo contra las reglas y para cada hallazgo da la línea o fragmento exacto, por qué importa (una frase) y una corrección concreta.
 
-Fix accessibility issues.
+Prefiere correcciones mínimas y localizadas; no reescribas partes grandes de la UI.
 
-## how to use
+## Cuándo aplicar
 
-- `$gara-fixing-accessibility` (Codex) or `/gara-fixing-accessibility` (Claude Code)
-  Apply these constraints to any UI work in this conversation.
+- Botones, enlaces, inputs, menús, diálogos, pestañas o desplegables nuevos o modificados.
+- Formularios, validación, errores y textos de ayuda.
+- Atajos de teclado o interacciones personalizadas.
+- Foco, trampas de foco y comportamiento modal.
+- Controles solo con icono, interacciones solo con hover o contenido oculto.
 
-- `$gara-fixing-accessibility <file>` or `/gara-fixing-accessibility <file>`
-  Review the file against all rules below and report:
-  - violations (quote the exact line or snippet)
-  - why it matters (one short sentence)
-  - a concrete fix (code-level suggestion)
+## Prioridad de las reglas
 
-Do not rewrite large parts of the UI. Prefer minimal, targeted fixes.
+| prioridad | categoría | impacto |
+|-----------|-----------|---------|
+| 1 | nombres accesibles | crítico |
+| 2 | acceso por teclado | crítico |
+| 3 | foco y diálogos | crítico |
+| 4 | semántica | alto |
+| 5 | formularios y errores | alto |
+| 6 | anuncios | medio-alto |
+| 7 | contraste y estados | medio |
+| 8 | medios y movimiento | bajo-medio |
+| 9 | límites de la herramienta | crítico |
 
-## when to apply
+### 1. Nombres accesibles (crítico)
 
-Reference these guidelines when:
-- adding or changing buttons, links, inputs, menus, dialogs, tabs, dropdowns
-- building forms, validation, error states, helper text
-- implementing keyboard shortcuts or custom interactions
-- working on focus states, focus trapping, or modal behavior
-- rendering icon-only controls
-- adding hover-only interactions or hidden content
+- Todo control interactivo tiene nombre accesible.
+- Los botones solo con icono llevan `aria-label` o `aria-labelledby`.
+- Todo input, select y textarea está etiquetado.
+- Los enlaces tienen texto con sentido (nada de "pulsa aquí").
+- Los iconos decorativos llevan `aria-hidden`.
 
-## rule categories by priority
+### 2. Teclado (crítico)
 
-| priority | category | impact |
-|----------|----------|--------|
-| 1 | accessible names | critical |
-| 2 | keyboard access | critical |
-| 3 | focus and dialogs | critical |
-| 4 | semantics | high |
-| 5 | forms and errors | high |
-| 6 | announcements | medium-high |
-| 7 | contrast and states | medium |
-| 8 | media and motion | low-medium |
-| 9 | tool boundaries | critical |
+- No uses `div` o `span` como botón sin soporte completo de teclado.
+- Todo elemento interactivo es alcanzable con Tab y muestra foco visible.
+- No uses `tabindex` mayor que 0.
+- Escape cierra diálogos y overlays cuando corresponde.
 
-## quick reference
+### 3. Foco y diálogos (crítico)
 
-### 1. accessible names (critical)
+- Los modales atrapan el foco mientras están abiertos, lo colocan dentro al abrir y lo devuelven al disparador al cerrar.
+- Abrir un diálogo no debe desplazar la página de forma inesperada.
 
-- every interactive control must have an accessible name
-- icon-only buttons must have aria-label or aria-labelledby
-- every input, select, and textarea must be labeled
-- links must have meaningful text (no “click here”)
-- decorative icons must be aria-hidden
+### 4. Semántica (alto)
 
-### 2. keyboard access (critical)
+- Prefiere elementos nativos (`button`, `a`, `input`) a roles improvisados; si usas un rol, incluye sus atributos aria obligatorios.
+- Las listas usan `ul`/`ol` con `li`; no saltes niveles de encabezado; las tablas usan `th` en las cabeceras.
 
-- do not use div or span as buttons without full keyboard support
-- all interactive elements must be reachable by Tab
-- focus must be visible for keyboard users
-- do not use tabindex greater than 0
-- Escape must close dialogs or overlays when applicable
+### 5. Formularios y errores (alto)
 
-### 3. focus and dialogs (critical)
+- Vincula errores y ayudas a su campo con `aria-describedby`; marca `aria-invalid` en los inválidos y anuncia los obligatorios.
+- Un envío deshabilitado explica por qué.
 
-- modals must trap focus while open
-- restore focus to the trigger on close
-- set initial focus inside dialogs
-- opening a dialog should not scroll the page unexpectedly
+### 6. Anuncios (medio-alto)
 
-### 4. semantics (high)
+- Los errores críticos de formulario usan `aria-live`; las cargas, `aria-busy` o texto de estado.
+- Un toast no es la única vía para información crítica.
+- Los controles expandibles usan `aria-expanded` y `aria-controls`.
 
-- prefer native elements (button, a, input) over role-based hacks
-- if a role is used, required aria attributes must be present
-- lists must use ul or ol with li
-- do not skip heading levels
-- tables must use th for headers when applicable
+### 7. Contraste y estados (medio)
 
-### 5. forms and errors (high)
+- Contraste suficiente en texto e iconos; el estado deshabilitado no depende solo del color.
+- Toda interacción solo con hover tiene equivalente de teclado.
+- No quites el contorno de foco sin un sustituto visible.
 
-- errors must be linked to fields using aria-describedby
-- required fields must be announced
-- invalid fields must set aria-invalid
-- helper text must be associated with inputs
-- disabled submit actions must explain why
+### 8. Medios y movimiento (bajo-medio)
 
-### 6. announcements (medium-high)
+- Las imágenes tienen alt correcto (descriptivo o vacío); los vídeos con voz, subtítulos cuando proceda.
+- Respeta `prefers-reduced-motion` en el movimiento no esencial; no reproduzcas audio automáticamente.
 
-- critical form errors should use aria-live
-- loading states should use aria-busy or status text
-- toasts must not be the only way to convey critical information
-- expandable controls must use aria-expanded and aria-controls
+### 9. Límites de la herramienta (crítico)
 
-### 7. contrast and states (medium)
+- Cambios mínimos; no refactorices código ajeno al problema.
+- No añadas aria cuando la semántica nativa ya lo resuelve.
+- No migres librerías de UI salvo petición expresa; en widgets complejos (menú, diálogo, combobox) prefiere las primitivas accesibles ya usadas en el checkout.
 
-- ensure sufficient contrast for text and icons
-- hover-only interactions must have keyboard equivalents
-- disabled states must not rely on color alone
-- do not remove focus outlines without a visible replacement
-
-### 8. media and motion (low-medium)
-
-- images must have correct alt text (meaningful or empty)
-- videos with speech should provide captions when relevant
-- respect prefers-reduced-motion for non-essential motion
-- avoid autoplaying media with sound
-
-### 9. tool boundaries (critical)
-
-- prefer minimal changes, do not refactor unrelated code
-- do not add aria when native semantics already solve the problem
-- do not migrate UI libraries unless requested
-
-## common fixes
+## Correcciones habituales
 
 ```html
-<!-- icon-only button: add aria-label -->
-<!-- before --> <button><svg>...</svg></button>
-<!-- after -->  <button aria-label="Close"><svg aria-hidden="true">...</svg></button>
+<!-- botón solo con icono: añade aria-label -->
+<!-- antes -->   <button><svg>...</svg></button>
+<!-- después --> <button aria-label="Cerrar"><svg aria-hidden="true">...</svg></button>
 
-<!-- div as button: use native element -->
-<!-- before --> <div onclick="save()">Save</div>
-<!-- after -->  <button onclick="save()">Save</button>
+<!-- div como botón: usa el elemento nativo -->
+<!-- antes -->   <div onclick="save()">Guardar</div>
+<!-- después --> <button onclick="save()">Guardar</button>
 
-<!-- form error: link with aria-describedby -->
-<!-- before --> <input id="email" /> <span>Invalid email</span>
-<!-- after -->  <input id="email" aria-describedby="email-err" aria-invalid="true" /> <span id="email-err">Invalid email</span>
+<!-- error de formulario: vincúlalo con aria-describedby -->
+<!-- antes -->   <input id="email" /> <span>Correo no válido</span>
+<!-- después --> <input id="email" aria-describedby="email-err" aria-invalid="true" /> <span id="email-err">Correo no válido</span>
 ```
 
-## review guidance
+## Orden de trabajo
 
-- fix critical issues first (names, keyboard, focus, tool boundaries)
-- prefer native HTML before adding aria
-- quote the exact snippet, state the failure, propose a small fix
-- for complex widgets (menu, dialog, combobox), prefer established accessible primitives over custom behavior
+Arregla primero lo crítico (nombres, teclado, foco, límites). Cita el fragmento exacto, indica el fallo y propón un arreglo pequeño.

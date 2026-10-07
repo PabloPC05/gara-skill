@@ -1,25 +1,31 @@
 ---
 name: "gara-workflow"
-description: "Opera o diagnostica el flujo Gara de requisitos, plan, tareas, construcción, verificación y revisión, en modo manual o automatizado."
+description: "Guía manual del flujo Gara: orden de fases, puntos de control y cómo retomar un trabajo leyendo specs/<slug>/ y git; usar cuando el usuario no sepa por qué fase va o qué invocar a continuación. No ejecuta ninguna fase."
+disable-model-invocation: true
 ---
 
 # Flujo Gara
 
-Lee el [perfil Gara](references/gara.md) y aplica las instrucciones del checkout objetivo.
+Lee el [perfil Gara](references/gara.md) y el [flujo manual](references/flujo.md), que es la fuente de las reglas y de la tabla de fases. Esta skill orienta; no lanza fases, no escribe artefactos ni código.
 
-## Ejecución
+## Orden
 
-Ejecución directa, sin agentes propios: recibe checkout, slug, modo solicitado y autorización vigente; entrega estado del ejecutor, artefactos y límites observados. Cada fase seleccionada decide su coordinación mediante el [contrato de delegación](references/delegation.md). No precargues fases explícitas en agentes ni lances otro CLI dentro de un trabajador. Sin delegación, las fases ejecutan el mismo alcance secuencialmente.
+`gara-spec` → `gara-plan` → `gara-tasks` → `gara-build` (una tanda por invocación) → `gara-verify` → `gara-review` → `gara-deliver`. Cada una la invoca el usuario y termina con una parada. Una corrección pequeña y acotada puede saltarse spec, plan y tareas si el usuario lo pide, con aceptación proporcional y `gara-commit`.
 
-El flujo guiado es gara-spec → gara-plan → gara-tasks → gara-build → gara-verify → gara-review. Ajusta su profundidad al trabajo; una corrección claramente acotada puede ejecutarse directamente con aceptación proporcional.
+## Retomar un trabajo
 
-Para automatización, lee la referencia de operación y el contrato de artefactos. Resuelve `scripts/gara_workflow.py` respecto a esta skill. Empieza por doctor y un dry-run; run ejecuta la SPEC autorizada desde una rama de issue. No interpretes una petición de explicar o preparar como una orden de lanzar el flujo.
+Sin depender de la conversación, lee solo lo necesario:
 
-Un estado completed corresponde a una ejecución local validada. Publicación y entrega se añaden con --publish explícito. Status, metrics, sessions y watch observan el progreso; resume reconcilia hashes y trabajo interrumpido. Usa --ack-checkpoint solo tras una comprobación humana real.
+1. `git branch --show-current`, `git status` y `git log --oneline -10`: rama (¿coincide con el issue?), cambios sin commitear y último trabajo.
+2. `specs/<slug>/`: qué archivos existen y su contenido; los artefactos están descritos en [artifacts.md](references/artifacts.md).
+3. Deduce la fase actual: sin `SPEC.md` o con `approved: false` → `gara-spec`; SPEC aprobada sin `PLAN.md` → `gara-plan`; sin `TAREAS.md` → `gara-tasks`; tareas `pendiente`, `en curso` o `bloqueada` → `gara-build`; todas `verificada` sin Verificación → `gara-verify`; sin Revisión → `gara-review`; revisión cerrada sin `ENTREGA.md` → `gara-deliver`.
+4. Busca `## Bloqueado` en los artefactos y comprueba que el SHA de `REVISION.md` coincide con HEAD y que no hay cambios posteriores; si no, verificación y revisión están obsoletas.
 
-Los clientes, modelos y permisos se heredan de la configuración vigente. No añadas bypasses, servidores, tokens ni modelos fijos. Ante infraestructura fallida después de cambios, reconcilia antes de repetir. Un requisito material pendiente produce un bloqueo documentado.
+## Parada
+
+Devuelve: slug y rama, fase deducida con la evidencia que la sostiene, bloqueos o incoherencias (por ejemplo, tareas `en curso` tras una interrupción: comprobar qué quedó hecho antes de repetir) y la fase que el usuario podría invocar. Si hay ambigüedad, pregunta; no avances ni invoques la fase.
 
 ## Referencias
 
 - [artifacts.md](references/artifacts.md)
-- [runtime.md](references/runtime.md)
+- [flujo.md](references/flujo.md)

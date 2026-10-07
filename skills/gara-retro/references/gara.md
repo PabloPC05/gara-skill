@@ -16,7 +16,7 @@ Los cambios de esquema requieren modelos y migraciones Alembic coherentes. `sql/
 
 ## Entrega
 
-Antes de implementar, acredita asignación del issue e `In Progress` conforme al proceso actual. Usa la rama sugerida por Linear y una PR para integrar. Si las herramientas no permiten consultar Linear, pide contexto verificable o registra el bloqueo; no inventes estados.
+Antes de implementar, acredita asignación del issue e `In Progress` conforme al proceso actual. Usa la rama sugerida por Linear y una PR para integrar. Si las herramientas no permiten consultar Linear, pide al usuario que confirme asignación y estado, o registra el bloqueo; una confirmación suya cuenta como acreditación, pero no inventes estados.
 
 Usa `gara-commit` para commits atómicos y narrativos en español. El rechazo del validador se corrige; no se elude. La entrega incluye documentación afectada y evidencias. La revisión de un agente no equivale a la revisión humana exigida para `Done`; respeta las excepciones explícitas vigentes, sin ampliarlas.
 

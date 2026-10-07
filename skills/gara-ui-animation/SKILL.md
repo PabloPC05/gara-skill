@@ -9,9 +9,9 @@ Lee el [perfil Gara](references/gara.md) y aplica las instrucciones del checkout
 
 ## Ejecución
 
-Ejecución directa, sin agentes. Recibe interacción/objetivo o grabación, stack y recursos actuales; entrega movimiento o medición con código, parámetros y validación pertinente. Si no hay grabación, navegador o herramientas de medida necesarias, declara qué no pudo medir o probar. No requiere delegación.
+Ejecución directa, sin agentes. Recibe interacción/objetivo o grabación, stack y recursos actuales; entrega movimiento o medición con código, parámetros y validación pertinente. Si no hay grabación, navegador o herramientas de medida necesarias, declara qué no pudo medir o probar. Aplica estos criterios al alcance pedido en Gara y a su sistema visual existente, sin dependencias nuevas ni rediseño incidental.
 
-Aplica estos criterios al alcance pedido en Gara y a su sistema visual existente. No introduzcas dependencias o un rediseño incidental.
+Esta skill no invoca otras: cuando el texto de abajo dice "route" o "related skills", indica al usuario cuál convendría (por ejemplo `/gara-fixing-motion-performance` para tirones medidos). Los scripts de `scripts/` se invocan como `python3 …` en el texto; en Windows usa `py …`. Al terminar, devuelve el resultado y espera instrucciones; no hace commit.
 
 # UI Animation
 

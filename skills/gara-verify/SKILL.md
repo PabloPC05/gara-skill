@@ -1,27 +1,26 @@
 ---
 name: "gara-verify"
-description: "Verifica una implementación de Gara contra SPEC, PLAN y TAREAS, ejecutando criterios de aceptación y documentando desviaciones."
+description: "Verifica una implementación construida de Gara contra SPEC, PLAN y TAREAS, ejecutando la aceptación y escribiendo la sección Verificación de REVISION.md; usar tras gara-build, antes de la revisión de corrección."
+disable-model-invocation: true
 ---
 
 # Verificación Gara
 
-Lee el [perfil Gara](references/gara.md) y aplica las instrucciones del checkout objetivo.
+Lee el [perfil Gara](references/gara.md), el [flujo manual](references/flujo.md) y aplica las instrucciones del checkout objetivo. Solo escribe la sección `## Verificación` de `specs/<slug>/REVISION.md` (plantilla en el [contrato de artefactos](references/artifacts.md)); no edites código, SPEC, PLAN ni aceptaciones.
 
-## Ejecución
+## Pasos
 
-Coordinación condicional: usa una instancia nueva de `gara-verifier` en modo `conformidad` para contrastar la implementación con contexto fresco. Entrega SPEC, PLAN, TAREAS, diff/código y consumidores, SHA observado y aceptación; devuelve evidencia por requisito, checks, hallazgos y límites sin editar. Para UI y con navegador real disponible, usa `gara-revisor-visual`: entrega URL, flujos/estados, temas y viewports, tokens, capacidades y archivos propios. Devuelve observaciones/capturas y solo corrige acabado dentro del ownership autorizado.
+1. Comprueba qué está construido: una tarea `pendiente`, `en curso` o `bloqueada` impide declarar completa la feature; regístralo. Fija el SHA verificado, que debe ser un commit existente; si hay cambios sin commitear, indícalo en *Limitaciones* en vez de atribuirlos a un SHA.
+2. Contrasta requisito por requisito (SPEC, contratos del PLAN, código y aceptación) y ejecuta tú las aceptaciones pertinentes. Si compensa, delega en una instancia nueva de `gara-verifier` en modo `conformidad`; para UI con navegador real disponible, en `gara-revisor-visual`. Ambos según el [contrato de delegación](references/delegation.md): sin agentes o sin navegador, hazlo tú y declara en *Limitaciones* la falta de contexto independiente o los flujos no comprobados.
+3. Escribe la sección con autor y rol reales, requisitos, aceptaciones con su salida, hallazgos y limitaciones. No atribuyas resultados locales a CI remoto ni a producción.
+4. Las desviaciones se registran como hallazgos; corregirlas es decisión del usuario (otra `/gara-build` o un cambio acotado que él pida). Si el requisito exige una decisión nueva, registra `## Bloqueado`.
 
-El coordinador escribe la sección `verification` del registro de `REVISION.md` definido en artifacts.md, con autor y sesión reales, y conserva por separado la revisión de corrección. Tras cambios de UI o código, repite la aceptación afectada para el SHA resultante. Comprueba el [contrato de delegación](references/delegation.md). Sin agentes, realiza la verificación y declara que faltó contexto independiente; sin navegador, registra los flujos no comprobados y limita el juicio visual a la evidencia disponible.
+## Parada
 
-Comprueba qué está construido realmente; una tarea pendiente o bloqueada impide declarar completa la feature. El modo conformidad de gara-verifier revisa la correspondencia requisito, contrato, código y aceptación.
-
-Ejecuta los criterios pertinentes y conserva SHA, comandos y salida real en REVISION.md. Para UI, recorre los flujos afectados con un navegador real cuando esté disponible y explica lo que no pudo comprobarse. No atribuyas resultados locales a CI remoto ni a producción.
-
-Corrige desviaciones del alcance autorizado y valida las rutas afectadas. No edites SPEC, PLAN ni el contrato de aceptación para adaptar la promesa al resultado. Si el requisito exige una decisión nueva o cambiar arquitectura, registra el bloqueo y prepara una versión nueva.
-
-Reconciliar contexto significa actualizar solo documentación y memoria afectadas, manteniendo commits de mediciones no repetidas. Registra las correcciones con gara-commit solo cuando el commit esté autorizado por el usuario o por una ejecución `run`. Termina listo para revisión, sujeto al proceso humano de Gara; la revisión genérica de corrección corresponde a gara-review.
+Termina aquí; no corrijas ni lances la revisión. Devuelve: resumen, archivo tocado, hallazgos y limitaciones, decisiones pendientes y siguiente fase sugerida: `/gara-review` si no hay desviaciones, o `/gara-build` para corregirlas.
 
 ## Referencias
 
 - [artifacts.md](references/artifacts.md)
-- [runtime.md](references/runtime.md)
+- [delegation.md](references/delegation.md)
+- [flujo.md](references/flujo.md)

@@ -1,27 +1,26 @@
 ---
 name: "gara-review"
-description: "Revisa un diff de Gara para encontrar fallos de corrección, regresiones y pruebas ausentes, independientemente de la conformidad con el plan."
+description: "Revisa el diff de Gara en busca de fallos de corrección, regresiones y pruebas ausentes, con independencia del plan, y escribe la sección Revisión de REVISION.md; usar tras gara-verify."
+disable-model-invocation: true
 ---
 
 # Revisión de corrección Gara
 
-Lee el [perfil Gara](references/gara.md) y aplica las instrucciones del checkout objetivo.
+Lee el [perfil Gara](references/gara.md), el [flujo manual](references/flujo.md) y aplica las instrucciones del checkout objetivo. Solo añade la sección `## Revisión` a `specs/<slug>/REVISION.md` y conserva intacta `## Verificación` (plantilla en el [contrato de artefactos](references/artifacts.md)). No edites código ni SPEC/PLAN.
 
-## Ejecución
+## Pasos
 
-Coordinación condicional: selecciona una instancia nueva de `gara-verifier` en modo `correccion`, sin participación en la implementación, cuando la capacidad nativa esté disponible y autorizada. Entrega diff/código bruto, baseline/SHA, consumidores, contratos y aceptaciones; evita incluir las conclusiones esperadas del implementador. El verifier devuelve fallos reproducibles o una revisión sin hallazgos, ubicaciones, checks y límites; no edita código ni el informe.
+1. Parte del diff y sus consumidores con contexto fresco. Si compensa, delega en una instancia nueva de `gara-verifier` en modo `correccion`, distinta de quien implementó, según el [contrato de delegación](references/delegation.md); sin agentes, revisa tú y declara en *Limitaciones* que no hay independencia (un autoinforme no la acredita).
+2. Busca errores de comportamiento, contratos rotos, autorización, estados concurrentes y casos límite. Investiga cada candidato y reprodúcelo cuando sea posible; una sospecha no es un fallo confirmado. Estilo, refactors y rendimiento sin medir son opcionales y no bloquean.
+3. Registra cada hallazgo con severidad, ubicación, desencadenante y evidencia, y estado `resuelto` o `aceptado`. Uno sin resolver ni aceptar impide cerrar la revisión: regístralo como `## Bloqueado`.
+4. No corrijas por tu cuenta. Si el usuario pide una corrección, aplícala dentro del alcance y ejecuta la aceptación afectada; verify y review deben repetirse sobre el SHA nuevo. Cambios de requisito o migraciones nuevas vuelven a `/gara-plan`.
 
-El coordinador incorpora la sección `review` del registro de `REVISION.md` definido en artifacts.md y conserva `verification`, con autor y sesión reales. Si corrige código, repite aceptación y las revisiones afectadas para el nuevo SHA. Comprueba el [contrato de delegación](references/delegation.md). Sin agentes, revisa en esta sesión y declara la ausencia de contexto independiente; un autoinforme no acredita independencia.
+## Parada
 
-Parte del diff y sus consumidores con contexto fresco. Busca errores de comportamiento, contratos rotos, autorización, estados concurrentes y casos límite. Investiga cada candidato y reproduce cuando sea posible; no presentes sospechas como fallos confirmados.
-
-Clasifica por impacto y aporta ubicación, desencadenante y evidencia. Si delegas, usa gara-verifier en modo correccion en una instancia distinta del implementador. Si no hay delegación, declara la limitación; otra sesión técnica tampoco sustituye la aprobación humana exigida por Gara.
-
-Corrige solo fallos dentro del alcance y con autorización existente. Estilo, refactors y rendimiento no medido quedan como opcionales. Cambios de requisito, migraciones nuevas o ampliaciones materiales vuelven a planificación. Mantén estables SPEC y PLAN.
-
-Escribe REVISION.md como el bloque `gara-review:v1` de artifacts.md: SHA real, requisitos y aceptaciones cubiertos, hallazgos con estado `resolved` o `accepted` y limitaciones. Un hallazgo sin resolver ni aceptar no cabe en el contrato: registra el bloqueo en lugar de cerrar la revisión. Ejecuta la aceptación de las correcciones antes de gara-commit y commitea solo con autorización vigente. No marques Done ni publiques por el hecho de revisar.
+Termina aquí; no publiques ni marques `Done`. Devuelve: resumen, archivo tocado, hallazgos por severidad y limitaciones, decisiones pendientes (qué corregir o aceptar) y siguiente fase sugerida: `/gara-deliver` si la revisión está cerrada, o `/gara-build` y repetir verify y review si hay correcciones.
 
 ## Referencias
 
 - [artifacts.md](references/artifacts.md)
-- [runtime.md](references/runtime.md)
+- [delegation.md](references/delegation.md)
+- [flujo.md](references/flujo.md)
