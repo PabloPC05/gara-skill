@@ -18,6 +18,7 @@ Tú diriges el trabajo. No hay ejecutor automático: cada fase es una skill que 
 | `gara-plan` | SPEC aprobada | `PLAN.md` | el usuario lee el plan y lo acepta |
 | `gara-tasks` | SPEC + PLAN | `TAREAS.md` | el usuario revisa tareas y comandos de aceptación |
 | `gara-build` | `TAREAS.md` revisado | código + estados en `TAREAS.md` | el usuario revisa el diff de cada tanda |
+| `gara-probar` (recomendada si el cambio se ve en la app) | código construido y app arrancada | resultado por escenario con capturas | el usuario decide si vuelve a `gara-build` o sigue |
 | `gara-verify` | código construido | sección Verificación de `REVISION.md` | el usuario lee los hallazgos |
 | `gara-review` | código verificado | sección Revisión de `REVISION.md` | el usuario decide qué corregir o aceptar |
 | `gara-deliver` | revisión cerrada | `ENTREGA.md`, PR | el usuario autoriza publicar |
@@ -28,6 +29,7 @@ Ajusta la profundidad al trabajo: una corrección pequeña y acotada puede salta
 
 - **Tras `gara-tasks`**: los comandos de aceptación los ejecutará `gara-build` en tu máquina con tus permisos. Léelos antes de construir; deben poder fallar y no tocar nada fuera del alcance.
 - **Tras cada tanda de `gara-build`**: la skill se detiene aunque queden tareas, con el diff, los comandos lanzados y su salida real. Continúa solo cuando lo pidas.
+- **Al terminar de construir**: si el cambio se ve en la app, recórrelo con `gara-probar` antes de verificar; los fallos que encuentre se corrigen con otra tanda de `gara-build`. Si el cambio es solo backend o lógica sin interfaz, las aceptaciones bastan y se pasa directamente a `gara-verify`.
 - **Tareas con `Punto de revisión: sí`**: comprobación humana concreta (pantalla, flujo, dato) antes de seguir.
 - **Antes de `gara-deliver`**: la revisión de un agente no equivale a la revisión humana que Gara exige para `Done`.
 

@@ -15,7 +15,7 @@ Qué skills invocar, en qué orden y qué agentes pueden intervenir. Los agentes
 | 3 | `/gara-plan` | `gara-scout`, `gara-researcher` si hay una duda técnica externa | Aceptar `PLAN.md` |
 | 4 | `/gara-tasks` | — | Revisar tareas y comandos de aceptación |
 | 5 | `/gara-build`, una vez por tanda | `gara-implementer` por tarea | Revisar el diff; `/gara-commit` si quieres registrar |
-| 6 | `/gara-probar` (si hay UI) | `gara-probador` en navegador real | Ver qué escenarios fallan |
+| 6 | `/gara-probar`, si el cambio se ve en la app (recomendado) | `gara-probador` en navegador real | Ver qué escenarios fallan; si falla alguno, otra `/gara-build` |
 | 7 | `/gara-verify` | `gara-verifier` (conformidad); `gara-revisor-visual` y `gara-probador` si hay UI | Leer hallazgos |
 | 8 | `/gara-review` | `gara-verifier` (corrección), instancia nueva | Decidir qué corregir o aceptar |
 | 9 | `/gara-deliver` | — | Ordenar publicar; la revisión humana sigue pendiente |
@@ -26,7 +26,7 @@ Si la feature tiene pantalla nueva, aplica `/gara-frontend-design` durante el bu
 
 *Ejemplo: "el filtro de fechas excluye el último día".* Necesita issue y rama.
 
-Puedes saltarte spec, plan y tareas: describe el fallo, pide la corrección con una prueba que lo reproduzca, revisa el diff y `/gara-commit`. Si quieres una segunda mirada, `/gara-review` con `gara-verifier`. Si el arreglo crece (varios módulos, cambia un contrato o una migración), vuelve al caso 1.
+Puedes saltarte spec, plan y tareas: describe el fallo, pide la corrección con una prueba que lo reproduzca, revisa el diff y, si el fallo se veía en la app, comprueba el arreglo con `/gara-probar` recorriendo los pasos que lo reproducían; después `/gara-commit`. Si quieres una segunda mirada, `/gara-review` con `gara-verifier`. Si el arreglo crece (varios módulos, cambia un contrato o una migración), vuelve al caso 1.
 
 ## 3. Incidente con causa desconocida
 
@@ -50,7 +50,7 @@ Puedes saltarte spec, plan y tareas: describe el fallo, pide la corrección con 
 | Título, descripción o vista previa al compartir | `/gara-fixing-metadata` | — |
 | Documentar el sistema visual | `/gara-diseno` | — |
 
-Si el cambio modifica código de Gara, lleva issue y termina con `/gara-commit`.
+Si el cambio modifica código de Gara, lleva issue. Antes de `/gara-commit`, recorre el resultado con `/gara-probar`: estas skills cambian lo que el usuario ve y hace.
 
 ## 5. Decisión o pregunta
 

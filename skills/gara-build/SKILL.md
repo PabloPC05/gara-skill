@@ -18,7 +18,7 @@ Lee el [perfil Gara](references/gara.md), el [flujo manual](references/flujo.md)
 
 ## Parada
 
-Para al terminar la tanda, aunque queden tareas, o antes si hay un `Punto de revisión: sí`. Devuelve: resumen, archivos tocados, `git diff --stat` y el diff de la tanda, comandos lanzados con su salida real, estados de cada tarea, decisiones pendientes y siguiente paso sugerido: otra `/gara-build` para la siguiente tanda, `/gara-commit` si el usuario quiere registrar, o `/gara-verify` si no quedan tareas pendientes.
+Para al terminar la tanda, aunque queden tareas, o antes si hay un `Punto de revisión: sí`. Devuelve: resumen, archivos tocados, `git diff --stat` y el diff de la tanda, comandos lanzados con su salida real, estados de cada tarea, decisiones pendientes y siguiente paso sugerido: otra `/gara-build` para la siguiente tanda, `/gara-commit` si el usuario quiere registrar, o, si no quedan tareas pendientes, `/gara-probar` cuando el cambio se ve en la app y `/gara-verify` cuando no (o después de probar).
 
 ## Referencias
 

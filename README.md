@@ -45,7 +45,7 @@ Para limitarlos a un proyecto, usa `.claude/skills/` y `.claude/agents/` de ese 
 
 Las skills de fase solo se ejecutan si las invocas (`disable-model-invocation`). Cada una hace un único paso, escribe su artefacto en `specs/<slug>/` del checkout de Gara y se detiene con un resumen y la decisión que te toca:
 
-`/gara-spec` → `/gara-plan` → `/gara-tasks` → `/gara-build` → `/gara-verify` → `/gara-review` → `/gara-deliver`
+`/gara-spec` → `/gara-plan` → `/gara-tasks` → `/gara-build` → `/gara-probar` (si el cambio se ve en la app) → `/gara-verify` → `/gara-review` → `/gara-deliver`
 
 Tú apruebas la SPEC, lees el plan, revisas las tareas y sus comandos de aceptación antes de construir, y ordenas explícitamente cada commit (`/gara-commit`) y la publicación. **¿Qué skills y agentes uso para una feature, un bug, una pantalla o una investigación?** Consulta los [casos de uso](references/casos-de-uso.md), o invoca `/gara-workflow` para que te oriente. Detalles en [references/flujo.md](references/flujo.md), formato de los artefactos en [references/artifacts.md](references/artifacts.md) y cuándo se delega a un agente en [references/delegation.md](references/delegation.md).
 
