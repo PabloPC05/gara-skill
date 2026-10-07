@@ -1,13 +1,13 @@
 # Gara Skill
 
-Skills y agentes de **Claude Code** para desarrollar Gara, publicados en [PabloPC05/gara-skill](https://github.com/PabloPC05/gara-skill). Son 27 skills y 10 agentes. No hay ejecutor ni automatización: tú invocas cada fase y decides cuándo pasar a la siguiente. Incluye `gara-commit`, también disponible como plugin independiente.
+Skills y agentes de **Claude Code** para desarrollar Gara, publicados en [PabloPC05/gara-skill](https://github.com/PabloPC05/gara-skill). Son 28 skills y 11 agentes. No hay ejecutor ni automatización: tú invocas cada fase y decides cuándo pasar a la siguiente. Incluye `gara-commit`, también disponible como plugin independiente.
 
 ## Estructura
 
 | Ruta | Contenido |
 | --- | --- |
 | `skills/gara-*/` | Una carpeta por skill: `SKILL.md`, referencias y helpers propios |
-| `agents/` | Los 10 agentes, con frontmatter nativo de Claude Code |
+| `agents/` | Los 11 agentes, con frontmatter nativo de Claude Code |
 | `profiles/gara.md` | Contexto Gara: stack, memoria, proceso y límites |
 | `references/` | Flujo manual, casos de uso, contrato de artefactos y matriz de delegación |
 | `plugins/gara-commit/` | Plugin autocontenido de commits (marketplace `gara-tools`) |
@@ -49,7 +49,7 @@ Las skills de fase solo se ejecutan si las invocas (`disable-model-invocation`).
 
 Tú apruebas la SPEC, lees el plan, revisas las tareas y sus comandos de aceptación antes de construir, y ordenas explícitamente cada commit (`/gara-commit`) y la publicación. **¿Qué skills y agentes uso para una feature, un bug, una pantalla o una investigación?** Consulta los [casos de uso](references/casos-de-uso.md), o invoca `/gara-workflow` para que te oriente. Detalles en [references/flujo.md](references/flujo.md), formato de los artefactos en [references/artifacts.md](references/artifacts.md) y cuándo se delega a un agente en [references/delegation.md](references/delegation.md).
 
-Las skills complementarias cubren diseño, accesibilidad, movimiento, investigación, convocatorias, logging y PDF. Las no explícitas pueden activarse solas cuando la petición encaja con su descripción.
+`/gara-probar` recorre una feature en un navegador real con [browser-harness](skills/gara-probar/references/navegador.md) (Browser Use); la guía explica cómo instalarlo y por qué usar un Chrome dedicado. Las skills complementarias cubren diseño, accesibilidad, movimiento, investigación, convocatorias, logging y PDF. Las no explícitas pueden activarse solas cuando la petición encaja con su descripción.
 
 ## Skill de commits
 

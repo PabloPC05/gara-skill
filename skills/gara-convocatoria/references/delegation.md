@@ -28,7 +28,8 @@ Un trabajador devuelve rutas o ubicaciones, hallazgos y evidencia, comandos ejec
 | `gara-plan` | coordinated | `gara-scout`: rutas/consumidores; `gara-researcher`: pregunta técnica externa concreta |
 | `gara-tasks` | direct | Sin agentes; prepara contratos y briefings |
 | `gara-build` | coordinated | `gara-implementer`: tareas completas con ownership y aceptación |
-| `gara-verify` | coordinated | `gara-verifier` en `conformidad`; `gara-revisor-visual` para UI con navegador disponible |
+| `gara-verify` | coordinated | `gara-verifier` en `conformidad`; `gara-revisor-visual` para acabado de UI y `gara-probador` para recorrer los flujos, con navegador disponible |
+| `gara-probar` | coordinated | `gara-probador`: escenarios de la SPEC en navegador real (browser-harness local) |
 | `gara-review` | coordinated | `gara-verifier` en `correccion`, con contexto fresco |
 | `gara-workflow` | direct | Sin agentes; guía manual del orden de fases y puntos de control |
 | `gara-deliver` | direct | Sin agentes; entrega autorizada mediante capacidades autenticadas |

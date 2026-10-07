@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-`gara-skill` is a bundle of **Claude Code skills and agents** for the **Gara** product: 27 skills (`skills/`) and 10 agents (`agents/`). There is no runner, installer or catalog; the user drives every phase by hand (`/gara-spec` → `plan` → `tasks` → `build` → `verify` → `review` → `deliver`). The repo's own prose, skill text and commit messages are in Spanish; match that. `AGENTS.md` and `README.md` are authoritative for contributor rules; `AGENTS.md` is kept byte-for-byte unmodified (`-text -eol` in `.gitattributes`) and predates the manual rewrite, so don't edit or reformat it and treat its runner-specific parts as historical.
+`gara-skill` is a bundle of **Claude Code skills and agents** for the **Gara** product: 28 skills (`skills/`) and 11 agents (`agents/`). There is no runner, installer or catalog; the user drives every phase by hand (`/gara-spec` → `plan` → `tasks` → `build` → `verify` → `review` → `deliver`). The repo's own prose, skill text and commit messages are in Spanish; match that. `AGENTS.md` and `README.md` are authoritative for contributor rules; `AGENTS.md` is kept byte-for-byte unmodified (`-text -eol` in `.gitattributes`) and predates the manual rewrite, so don't edit or reformat it and treat its runner-specific parts as historical.
 
 ## Commands
 
@@ -36,4 +36,4 @@ CI (`.github/workflows/test.yml`, Ubuntu and Windows, Python 3.12) runs `scripts
 - Ruff (`pyproject.toml`) is the only linter/formatter: line length 88, rules `E4,E7,E9,F`. It excludes `export`, `skills/gara-commit`, `plugins/gara-commit` and `skills/gara-ui-animation` (preserved third-party/original code), so don't reformat those. Preserve licenses and `docs/provenance.md` when touching imported skills (`gara-frontend-design`, `gara-ui-animation`, `gara-pdf` fonts).
 - `export.zip`, `export/`, `logs/`, `output/` are local-only (git-ignored) leftovers of the original conversion.
 - Gara's own stack (React/Vite/TS, Zustand, FastAPI) appears only in skill text and `profiles/gara.md` as guidance for the target checkout; there is no application code here. Don't freeze inventories, Linear states or commands in that text: the target checkout's own instructions prevail.
-- Adding or removing a skill/agent means: the folder or file with correct frontmatter, a row in the `references/delegation.md` matrix, the counts in `README.md` (27 skills, 10 agents), and re-copying the references. `docs/audit/` and `docs/migration.md` describe the earlier runner-based version and are historical.
+- Adding or removing a skill/agent means: the folder or file with correct frontmatter, a row in the `references/delegation.md` matrix, the counts in `README.md` (28 skills, 11 agents), and re-copying the references. `docs/audit/` and `docs/migration.md` describe the earlier runner-based version and are historical.

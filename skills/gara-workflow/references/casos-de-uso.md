@@ -15,9 +15,10 @@ Qué skills invocar, en qué orden y qué agentes pueden intervenir. Los agentes
 | 3 | `/gara-plan` | `gara-scout`, `gara-researcher` si hay una duda técnica externa | Aceptar `PLAN.md` |
 | 4 | `/gara-tasks` | — | Revisar tareas y comandos de aceptación |
 | 5 | `/gara-build`, una vez por tanda | `gara-implementer` por tarea | Revisar el diff; `/gara-commit` si quieres registrar |
-| 6 | `/gara-verify` | `gara-verifier` (conformidad); `gara-revisor-visual` si hay UI y navegador | Leer hallazgos |
-| 7 | `/gara-review` | `gara-verifier` (corrección), instancia nueva | Decidir qué corregir o aceptar |
-| 8 | `/gara-deliver` | — | Ordenar publicar; la revisión humana sigue pendiente |
+| 6 | `/gara-probar` (si hay UI) | `gara-probador` en navegador real | Ver qué escenarios fallan |
+| 7 | `/gara-verify` | `gara-verifier` (conformidad); `gara-revisor-visual` y `gara-probador` si hay UI | Leer hallazgos |
+| 8 | `/gara-review` | `gara-verifier` (corrección), instancia nueva | Decidir qué corregir o aceptar |
+| 9 | `/gara-deliver` | — | Ordenar publicar; la revisión humana sigue pendiente |
 
 Si la feature tiene pantalla nueva, aplica `/gara-frontend-design` durante el build o pide que la tarea lo indique en su briefing.
 
@@ -38,6 +39,7 @@ Puedes saltarte spec, plan y tareas: describe el fallo, pide la corrección con 
 | Situación | Skill | Agente |
 | --- | --- | --- |
 | Pantalla, flujo o componente nuevo o rediseñado | `/gara-frontend-design` (dentro de una feature, caso 1) | `gara-revisor-visual` en verify |
+| Comprobar que una feature funciona de punta a punta en la app | `/gara-probar` | `gara-probador` |
 | Pulir una pantalla que ya existe | `/gara-baseline-ui` | — |
 | Foco, teclado, contraste, lectores de pantalla | `/gara-fixing-accessibility` | — |
 | Diseñar o ajustar una animación | `/gara-ui-animation` | — |
