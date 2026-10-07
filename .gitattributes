@@ -7,3 +7,4 @@
 *.json text eol=lf
 AGENTS.md -text -eol
 *.sh text eol=lf
+*.patch text eol=lf
