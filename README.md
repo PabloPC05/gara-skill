@@ -9,7 +9,7 @@ Skills y agentes de **Claude Code** para desarrollar Gara, publicados en [PabloP
 | `skills/gara-*/` | Una carpeta por skill: `SKILL.md`, referencias y helpers propios |
 | `agents/` | Los 10 agentes, con frontmatter nativo de Claude Code |
 | `profiles/gara.md` | Contexto Gara: stack, memoria, proceso y límites |
-| `references/` | Flujo manual, contrato de artefactos y matriz de delegación |
+| `references/` | Flujo manual, casos de uso, contrato de artefactos y matriz de delegación |
 | `plugins/gara-commit/` | Plugin autocontenido de commits (marketplace `gara-tools`) |
 | `scripts/check.sh` | Comprueba frontmatter, copias de referencias y enlaces |
 
@@ -18,7 +18,7 @@ Cada skill lleva copias de `profiles/gara.md` y de las referencias que enlaza en
 ```bash
 for d in skills/*/; do
   cp profiles/gara.md "$d/references/gara.md" 2>/dev/null
-  for f in flujo artifacts delegation; do
+  for f in flujo artifacts delegation casos-de-uso; do
     [ -f "$d/references/$f.md" ] && cp "references/$f.md" "$d/references/"
   done
 done
@@ -47,7 +47,7 @@ Las skills de fase solo se ejecutan si las invocas (`disable-model-invocation`).
 
 `/gara-spec` → `/gara-plan` → `/gara-tasks` → `/gara-build` → `/gara-verify` → `/gara-review` → `/gara-deliver`
 
-Tú apruebas la SPEC, lees el plan, revisas las tareas y sus comandos de aceptación antes de construir, y ordenas explícitamente cada commit (`/gara-commit`) y la publicación. `/gara-workflow` resume este orden y los puntos de control. Detalles en [references/flujo.md](references/flujo.md), formato de los artefactos en [references/artifacts.md](references/artifacts.md) y cuándo se delega a un agente en [references/delegation.md](references/delegation.md).
+Tú apruebas la SPEC, lees el plan, revisas las tareas y sus comandos de aceptación antes de construir, y ordenas explícitamente cada commit (`/gara-commit`) y la publicación. **¿Qué skills y agentes uso para una feature, un bug, una pantalla o una investigación?** Consulta los [casos de uso](references/casos-de-uso.md), o invoca `/gara-workflow` para que te oriente. Detalles en [references/flujo.md](references/flujo.md), formato de los artefactos en [references/artifacts.md](references/artifacts.md) y cuándo se delega a un agente en [references/delegation.md](references/delegation.md).
 
 Las skills complementarias cubren diseño, accesibilidad, movimiento, investigación, convocatorias, logging y PDF. Las no explícitas pueden activarse solas cuando la petición encaja con su descripción.
 

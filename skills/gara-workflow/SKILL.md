@@ -1,6 +1,6 @@
 ---
 name: "gara-workflow"
-description: "Guía manual del flujo Gara: orden de fases, puntos de control y cómo retomar un trabajo leyendo specs/<slug>/ y git; usar cuando el usuario no sepa por qué fase va o qué invocar a continuación. No ejecuta ninguna fase."
+description: "Guía manual del flujo Gara: qué skills y agentes usar en cada caso (feature, bug, interfaz, investigación…), orden de fases, puntos de control y cómo retomar un trabajo leyendo specs/<slug>/ y git; usar cuando el usuario no sepa qué invocar para un trabajo, por qué fase va o qué sigue. No ejecuta ninguna fase."
 disable-model-invocation: true
 ---
 
@@ -11,6 +11,10 @@ Lee el [perfil Gara](references/gara.md) y el [flujo manual](references/flujo.md
 ## Orden
 
 `gara-spec` → `gara-plan` → `gara-tasks` → `gara-build` (una tanda por invocación) → `gara-verify` → `gara-review` → `gara-deliver`. Cada una la invoca el usuario y termina con una parada. Una corrección pequeña y acotada puede saltarse spec, plan y tareas si el usuario lo pide, con aceptación proporcional y `gara-commit`.
+
+## Elegir skills y agentes
+
+Para decidir qué invocar según el tipo de trabajo, si hace falta issue y qué agentes pueden intervenir, usa los [casos de uso](references/casos-de-uso.md). Recomienda el caso que encaje y explica por qué; si no encaja ninguno, dilo.
 
 ## Retomar un trabajo
 
@@ -28,4 +32,6 @@ Devuelve: slug y rama, fase deducida con la evidencia que la sostiene, bloqueos 
 ## Referencias
 
 - [artifacts.md](references/artifacts.md)
+- [casos-de-uso.md](references/casos-de-uso.md)
+- [delegation.md](references/delegation.md)
 - [flujo.md](references/flujo.md)
