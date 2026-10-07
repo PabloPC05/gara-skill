@@ -28,13 +28,14 @@ done
 # Las referencias de cada skill son copias de las fuentes compartidas.
 for dir in skills/*/; do
   for pair in "gara.md:profiles/gara.md" "flujo.md:references/flujo.md" \
-              "artifacts.md:references/artifacts.md" "delegation.md:references/delegation.md"; do
+              "artifacts.md:references/artifacts.md" "delegation.md:references/delegation.md" \n              "casos-de-uso.md:references/casos-de-uso.md"; do
     copy="$dir/references/${pair%%:*}"
     [ -f "$copy" ] && ! cmp -s "$copy" "${pair##*:}" && err "$copy difiere de ${pair##*:}"
     [ -f "$copy" ] && ! grep -q "references/${pair%%:*}" "$dir/SKILL.md" && err "$copy no está enlazada desde su SKILL.md"
   done
   # flujo.md enlaza artifacts.md: la skill que lleve uno debe llevar el otro.
   [ -f "$dir/references/flujo.md" ] && [ ! -f "$dir/references/artifacts.md" ] && err "$dir: flujo.md sin artifacts.md"
+  [ -f "$dir/references/casos-de-uso.md" ] && [ ! -f "$dir/references/delegation.md" ] && err "$dir: casos-de-uso.md sin delegation.md"
 done
 
 # Enlaces Markdown relativos de skills, agentes y referencias.
